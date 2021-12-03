@@ -1,0 +1,130 @@
+# Default values for ethadapter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- The number of replicas if autoscaling is false
+replicaCount: 1
+
+image:
+  # -- The repository of the container image
+  repository: public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter
+  # -- Image Pull Policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+# -- nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.
+# From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm)
+nameOverride: ""
+# -- fullnameOverride completely replaces the generated name.
+# From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm)
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: false
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations added to the pod
+podAnnotations: {}
+
+# -- Security Context for the pod.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod)
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- Security Context for the container.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # -- Either ClusterIP, NodePort or LoadBalancer.
+  # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+  type: ClusterIP
+  # -- Port where the service will be exposed
+  port: 3000
+  # -- Annotations for the service.
+  # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+  # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+  annotations: {}
+
+# -- Configuration. Will be put in a configmap.
+# Required values: rpcAddress, smartContractAddress, smartContractAbi
+config: {}
+  # IMPORTANT: Set these values!
+  # rpcAddress: "rpcAddress_value"
+  # smartContractAddress: "smartContractAddress_value"
+  # smartContractAbi: "smartContractAbi_value"
+
+# -- Secret/Sensitive configuration values. Will be put in a secret.
+# Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
+secrets: {}
+  # IMPORTANT: Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
+  # orgAccountJson: ""
+  # orgAccountJsonBase64: ""
+
+ingress:
+  # -- Whether to create ingress or not.
+  # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
+  enabled: false
+  # -- Ingress annotations.
+  # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
+  # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
+  # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+  # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- A list of hostnames and path(s) to listen at the Ingress Controller
+  hosts:
+    - host: ethadapter.some-pharma-company.com
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- Resource constraints for a pod
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  # -- Whether to enable horizontal pod autoscaling or not.
+  # See [https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/](https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/)
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# -- Node Selectors in order to assign pods to certain nodes.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+nodeSelector: {}
+
+# -- Tolerations for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+tolerations: []
+
+# -- Affinity for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+affinity: {}

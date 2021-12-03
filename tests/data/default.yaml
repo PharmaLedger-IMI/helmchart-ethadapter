@@ -1,0 +1,7 @@
+#
+# Test with default chart values and required config values. Note: secret values are passed at commandline
+#
+config:
+  rpcAddress: "rpcAddress_value"
+  smartContractAddress: "smartContractAddress_value"
+  smartContractAbi: "smartContractAbi_value"
