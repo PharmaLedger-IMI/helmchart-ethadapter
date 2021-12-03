@@ -1,0 +1,38 @@
+#
+# Use ingress with AWS LB Controller and HTTPS encrpytion
+#
+ingress:
+  enabled: true
+  hosts:
+    - host: ethadapter.mydomain.com
+      # Path must be /* for ALB to match all paths
+      paths: ["/*"]
+  # For full list of annotations for AWS LB Controller, see https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/
+  annotations:
+    # The ARN of the existing SSL Certificate at AWS Certificate Manager
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERTIFICATE_ID
+    # The name of the ALB group, can be used to configure a single ALB by multiple ingress objects
+    alb.ingress.kubernetes.io/group.name: default
+    # Specifies the HTTP path when performing health check on targets.
+    alb.ingress.kubernetes.io/healthcheck-path: /check
+    # Specifies the port used when performing health check on targets. 
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    # Specifies the HTTP status code that should be expected when doing health checks against the specified health check path.
+    alb.ingress.kubernetes.io/success-codes: "200"
+    # Listen on HTTPS protocol at port 3000 at the ALB
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":3000}]'
+    # Allow access from a specific IP address only, e.g. from the NAT Gateway of your EPI Cluster
+    alb.ingress.kubernetes.io/inbound-cidrs: 8.8.8.8/32 
+    # Use internet facing
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Use most current encryption ciphers
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    # Use target type IP which is the case if the service type is ClusterIP
+    alb.ingress.kubernetes.io/target-type: ip
+    # Let AWS LB Controller handle the ingress
+    kubernetes.io/ingress.class: alb
+
+config:
+  rpcAddress: "rpcAddress_value"
+  smartContractAddress: "smartContractAddress_value"
+  smartContractAbi: "smartContractAbi_value"

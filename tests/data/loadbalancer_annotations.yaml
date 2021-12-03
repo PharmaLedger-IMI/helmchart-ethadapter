@@ -1,0 +1,17 @@
+#
+# AWS: Expose Service directly via own dedicated Elastic Load Balancer with SSL/https protocol
+#
+service:
+  type: LoadBalancer
+  # A list of service annotations can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "3000"
+    # https://docs.aws.amazon.com/de_de/elasticloadbalancing/latest/classic/elb-security-policy-table.html
+    service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
+
+config:
+  rpcAddress: "rpcAddress_value"
+  smartContractAddress: "smartContractAddress_value"
+  smartContractAbi: "smartContractAbi_value"

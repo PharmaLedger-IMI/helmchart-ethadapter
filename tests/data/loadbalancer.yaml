@@ -1,0 +1,10 @@
+#
+# Expose Service directly via Load Balancer with http protocol
+#
+service:
+  type: LoadBalancer
+
+config:
+  rpcAddress: "rpcAddress_value"
+  smartContractAddress: "smartContractAddress_value"
+  smartContractAbi: "smartContractAbi_value"
