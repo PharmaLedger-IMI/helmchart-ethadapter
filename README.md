@@ -9,6 +9,7 @@ Helm Chart for Ethereum Adapter Service
   - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545`
   - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
   - Smart Contract Abi
+  <!-- # pragma: allowlist nextline secret -->
   - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
 
 ## Installation
