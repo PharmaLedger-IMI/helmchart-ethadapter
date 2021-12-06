@@ -96,7 +96,7 @@ service:
 Note: You need the [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/) installed and configured properly.
 
 1. Enable ingress
-2. Add host and path */**
+2. Add *host*, *path* *`/*`* and *pathType* `ImplementationSpecific`
 3. Add annotations for AWS LB Controller
 4. A SSL certificate at AWS Certificate Manager (either for the hostname, here `ethadapter.mydomain.com` or wildcard `*.mydomain.com`)
 
@@ -105,10 +105,16 @@ Configuration file *my-config.yaml*
 ```yaml
 ingress:
   enabled: true
+  # Let AWS LB Controller handle the ingress (default className is alb)
+  # Note: Use className instead of 'kubernetes.io/ingress.class' which is deprecated since 1.18
+  # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
+  className: alb
   hosts:
     - host: ethadapter.mydomain.com
       # Path must be /* for ALB to match all paths
-      paths: ["/*"]
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
   # For full list of annotations for AWS LB Controller, see https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/
   annotations:
     # The ARN of the existing SSL Certificate at AWS Certificate Manager
@@ -131,8 +137,6 @@ ingress:
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
     # Use target type IP which is the case if the service type is ClusterIP
     alb.ingress.kubernetes.io/target-type: ip
-    # Let AWS LB Controller handle the ingress
-    kubernetes.io/ingress.class: alb
 
 config:
   rpcAddress: "rpcAddress_value"
