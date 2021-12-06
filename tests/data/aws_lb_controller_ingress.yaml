@@ -3,10 +3,16 @@
 #
 ingress:
   enabled: true
+  # Let AWS LB Controller handle the ingress (default className is alb)
+  # Note: Use className instead of 'kubernetes.io/ingress.class' which is deprecated since 1.18
+  # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
+  className: alb
   hosts:
     - host: ethadapter.mydomain.com
       # Path must be /* for ALB to match all paths
-      paths: ["/*"]
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
   # For full list of annotations for AWS LB Controller, see https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/
   annotations:
     # The ARN of the existing SSL Certificate at AWS Certificate Manager
@@ -25,12 +31,10 @@ ingress:
     alb.ingress.kubernetes.io/inbound-cidrs: 8.8.8.8/32 
     # Use internet facing
     alb.ingress.kubernetes.io/scheme: internet-facing
-    # Use most current encryption ciphers
+    # Use most current (as of Dec 2021) encryption ciphers
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
     # Use target type IP which is the case if the service type is ClusterIP
     alb.ingress.kubernetes.io/target-type: ip
-    # Let AWS LB Controller handle the ingress
-    kubernetes.io/ingress.class: alb
 
 config:
   rpcAddress: "rpcAddress_value"
