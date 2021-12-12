@@ -4,7 +4,8 @@
 ingress:
   enabled: true
   # Let AWS LB Controller handle the ingress (default className is alb)
-  # Note: Use className instead of 'kubernetes.io/ingress.class' which is deprecated since 1.18
+  # Note: Use className instead of annotation 'kubernetes.io/ingress.class' which is deprecated since 1.18.
+  # For Kubernetes >= 1.18 it is required to have an existing IngressClass object.
   # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
   className: alb
   hosts:
