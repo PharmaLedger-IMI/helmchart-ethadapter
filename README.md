@@ -106,7 +106,8 @@ Configuration file *my-config.yaml*
 ingress:
   enabled: true
   # Let AWS LB Controller handle the ingress (default className is alb)
-  # Note: Use className instead of 'kubernetes.io/ingress.class' which is deprecated since 1.18
+  # Note: Use className instead of annotation 'kubernetes.io/ingress.class' which is deprecated since 1.18
+  # For Kubernetes >= 1.18 it is required to have an existing IngressClass object.
   # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
   className: alb
   hosts:
@@ -171,6 +172,19 @@ Run `helm upgrade --helm` for full list of options.
         --values my-config.yaml \
         --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}"
     ```
+
+### Potential issues
+
+1. `Error: admission webhook "vingress.elbv2.k8s.aws" denied the request: invalid ingress class: IngressClass.networking.k8s.io "alb" not found`
+
+    **Description:** This error only applies to Kubernetes >= 1.18 and indicates that no matching *IngressClass* object was found.
+
+    **Solution:** Either declare an appropriate IngressClass or omit *className* and add annotation `kubernetes.io/ingress.class`
+
+    Further information:
+
+     - [Kubernetes IngressClass](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class)
+     - [AWS Load Balancer controller documentation](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/ingress_class/)
 
 ## Test
 

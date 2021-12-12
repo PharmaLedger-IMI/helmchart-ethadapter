@@ -78,6 +78,11 @@ ingress:
   # -- Whether to create ingress or not.
   # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
   enabled: false
+  # -- The className specifies the IngressClass object which is responsible for that class.
+  # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
+  # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
+  # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
   className: ""
   # -- Ingress annotations.
   # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
