@@ -13,6 +13,8 @@ image:
   # -- Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# -- Secret(s) for pulling an container image from a private registry.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
 imagePullSecrets: []
 # -- nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.
 # From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm)
@@ -94,9 +96,16 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   # -- A list of hostnames and path(s) to listen at the Ingress Controller
   hosts:
-    - host: ethadapter.some-pharma-company.com
+    - # -- The FQDN/hostname
+      host: ethadapter.some-pharma-company.com
       paths:
-        - path: /
+        - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
+          # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
+          path: /
+          # -- The type of path. This value is required since Kubernetes 1.18.
+          # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
+          # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
+          # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
@@ -120,8 +129,11 @@ autoscaling:
   # -- Whether to enable horizontal pod autoscaling or not.
   # See [https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/](https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/)
   enabled: false
+  # -- The minimum number of replicas in case autoscaling is enabled.
   minReplicas: 1
+  # -- The maximum number of replicas in case autoscaling is enabled.
   maxReplicas: 100
+  # -- The CPU utilization in percentage as a target for autoscaling.
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
