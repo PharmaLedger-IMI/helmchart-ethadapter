@@ -27,5 +27,5 @@ jobs:
         run: helm plugin install https://github.com/quintush/helm-unittest --version=v0.2.8
 
       - name: Run Helm Unittest
-        run: helm unittest --helm3=true ethadapter
+        run: helm unittest --helm3=true charts/*
 
