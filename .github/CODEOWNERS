@@ -6,4 +6,4 @@
 # Unless a later match takes precedence, they will be requested for review when someone opens a pull request.
 * @tgip-work
 
-/ethadapter/ @tgip-work 
+/charts/ethadapter/ @tgip-work 

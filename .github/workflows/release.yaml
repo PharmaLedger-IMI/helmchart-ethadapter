@@ -1,0 +1,38 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        name: Checkout
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      # https://github.com/marketplace/actions/engineerd-configurator
+      - uses: engineerd/configurator@479197cb150e720c848c8dfbe12da101471258e3 # v0.0.8
+        name: Setup helm
+        with:
+          name: helm
+          url: https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
+          pathInArchive: linux-amd64/helm
+      - run: helm version
+
+      # https://github.com/helm/chart-releaser-action
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@c25b74a986eb925b398320414b576227f375f946 # v1.2.1
+        with:
+          charts_dir: charts
+          #config: cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

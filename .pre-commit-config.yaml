@@ -4,5 +4,5 @@ repos:
   hooks:
     - id: helm-docs
       args:
-        # Make the tool search for charts only under the `ethadapter` directory
-        - --chart-search-root=ethadapter
+        # Make the tool search for charts under the `charts` directory
+        - --chart-search-root=charts
