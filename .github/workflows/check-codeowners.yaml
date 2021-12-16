@@ -20,6 +20,7 @@ jobs:
       - name: generate CODEOWNERS
         run: |
           ./scripts/check-codeowners.sh > .github/CODEOWNERS
+          cat .github/CODEOWNERS
       
       - name: check CODEOWNERS for modifications
         run: |
