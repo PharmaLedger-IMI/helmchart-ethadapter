@@ -191,7 +191,7 @@ Run `helm upgrade --helm` for full list of options.
 [helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
 Tests can be found in [ethadapter/tests](.ethadapter/tests)
 
-## Manual
+## Manual Tests
 
 See [Helm Debugging Templates](https://helm.sh/docs/chart_template_guide/debugging/)
 
