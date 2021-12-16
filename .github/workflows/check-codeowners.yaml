@@ -1,0 +1,28 @@
+name: Check CODEOWNERS
+
+on: pull_request
+jobs:
+  find-diffs:
+    runs-on: ubuntu-20.04
+    name: Check if CODEOWNERS file is up to date with maintainers from helm chart(s)
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        name: Checkout
+
+      - name: install yq
+        run: |
+          sudo snap install yq
+      
+      - name: generate CODEOWNERS
+        run: |
+          ./scripts/check-codeowners.sh > .github/CODEOWNERS
+          cat .github/CODEOWNERS
+      
+      - name: check CODEOWNERS for modifications
+        run: |
+          git diff --exit-code || echo "::warning::There is at least one codeowner mismatch."
