@@ -10,7 +10,7 @@ Helm Chart for Ethereum Adapter Service
   - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
   - Smart Contract Abi
   <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
+  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}` 
 
 ## Installation
 
@@ -41,7 +41,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
     helm upgrade my-release-name ./ethadapter \
         --install \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}"
+        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
     ```
 
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
@@ -158,7 +158,7 @@ Run `helm upgrade --helm` for full list of options.
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}"
+        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\"\}"
     ```
 
 2. Wait until installation has finished successfully and the deployment is up and running.
@@ -170,7 +170,7 @@ Run `helm upgrade --helm` for full list of options.
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}"
+        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
     ```
 
 ### Potential issues
