@@ -16,8 +16,8 @@ Helm Chart for Ethereum Adapter Service
 
 ## Configuration options
 
-- [Here](./ethadapter/README.md) is a full list of all configuration values.
-- The [values.yaml file](./ethadapter/values.yaml) shows the raw view of all configuration values.
+- [Here](./charts/ethadapter/README.md) is a full list of all configuration values.
+- The [values.yaml file](./charts/ethadapter/values.yaml) shows the raw view of all configuration values.
 
 ### Quick install with internal service of type ClusterIP
 
@@ -38,7 +38,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 2. Install via helm to namespace `default` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
 
     ```bash
-    helm upgrade my-release-name ./ethadapter \
+    helm upgrade my-release-name ./charts/ethadapter \
         --install \
         --values my-config.yaml \
         --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
@@ -47,7 +47,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
 
     ```bash
-    helm upgrade my-release-name ./ethadapter \
+    helm upgrade my-release-name ./charts/ethadapter \
         --install \
         --values my-config.yaml \
         --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9"
@@ -154,7 +154,7 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ./ethadapter \
+    helm upgrade my-release-name ./charts/ethadapter \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
@@ -166,7 +166,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ./ethadapter \
+    helm upgrade my-release-name ./charts/ethadapter \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
@@ -189,7 +189,7 @@ Run `helm upgrade --helm` for full list of options.
 ## Helm Unittesting
 
 [helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
-Tests can be found in [ethadapter/tests](./ethadapter/tests)
+Tests can be found in [ethadapter/tests](./charts/ethadapter/tests)
 
 ## Manual Tests
 
@@ -201,21 +201,21 @@ rm -rf ./testresults/*
 # https://github.com/helm/helm/issues/5618
 echo ""
 echo "Default values and secret passed as String"
-helm template test-ethadapter ./ethadapter --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default.yaml
+helm template test-ethadapter ./charts/ethadapter --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default.yaml
 
 echo ""
 echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ./ethadapter --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
+helm template test-ethadapter ./charts/ethadapter --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
 
 echo ""
 echo "LoadBalancer"
-helm template test-ethadapter ./ethadapter --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
+helm template test-ethadapter ./charts/ethadapter --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
 
 echo ""
 echo "LoadBalancer and annotations"
-helm template test-ethadapter ./ethadapter --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
+helm template test-ethadapter ./charts/ethadapter --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
 
 echo ""
 echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ./ethadapter --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
+helm template test-ethadapter ./charts/ethadapter --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
 ```

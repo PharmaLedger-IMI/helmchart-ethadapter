@@ -11,7 +11,7 @@ cat <<EOF
 
 EOF
 
-for DIR in ./ethadapter
+for DIR in ./charts/*
 do
   FILE="$DIR/Chart.yaml"
   DIR="${DIR//\./}"
