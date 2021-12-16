@@ -1,0 +1,63 @@
+suite: test ingress with Kubernetes 1.18 and explicit annotation set for Ingress Class Name instead of className
+templates:
+  - ingress.yaml
+tests:
+  - it: should work
+    capabilities:
+      majorVersion: 1
+      minorVersion: 18
+    set:
+      config:
+        rpcAddress: "rpcAddress_value"
+        smartContractAddress: "smartContractAddress_value"
+        smartContractAbi: "smartContractAbi_value"
+      secrets:
+        orgAccountJson: "{ \"key\": \"value\" }"
+      ingress:
+        enabled: true
+        # Not set
+        #className: "className_test"
+        annotations:
+          annotation_1: "annotation_1_test"
+          annotation_2: "annotation_2_test"
+          "kubernetes.io/ingress.class": "annotation_class_test"
+        hosts:
+          - host: host_test
+            paths:
+              - path: /path_test
+                pathType: pathType_test
+    asserts:
+      - isKind:
+          of: Ingress
+      - matchRegex:
+          path: metadata.name
+          pattern: -ethadapter$
+      # ingressClassName not set, therefore shall be null
+      - isNull:
+          path: spec.ingressClassName
+      # annotation explicitly defined
+      - equal:
+          path: metadata.annotations.kubernetes\.io/ingress\.class
+          value: annotation_class_test
+      - equal:
+          path: metadata.annotations.annotation_1
+          value: annotation_1_test
+      - equal:
+          path: metadata.annotations.annotation_2
+          value: annotation_2_test
+      - equal:
+          path: spec.rules[0].host
+          value: host_test
+      # Pathtype must be for >= 1.18
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: pathType_test
+      # backend.service must not be set before 1.19
+      - isNull:
+          path: spec.rules[0].http.paths[0].backend.service
+      - matchRegex:
+          path: spec.rules[0].http.paths[0].backend.serviceName
+          pattern: -ethadapter$
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.servicePort
+          value: 3000

@@ -1,0 +1,32 @@
+suite: test service with custom setting
+templates:
+  - service.yaml
+tests:
+  - it: should work
+    set:
+      config:
+        rpcAddress: "rpcAddress_value"
+        smartContractAddress: "smartContractAddress_value"
+        smartContractAbi: "smartContractAbi_value"
+      secrets:
+        orgAccountJson: "{ \"key\": \"value\" }"
+      service:
+        type: LoadBalancer
+        annotations:
+          annotation_1: "annotation_1_test"
+          annotation_2: "annotation_2_test"
+    asserts:
+      - isKind:
+          of: Service
+      - matchRegex:
+          path: metadata.name
+          pattern: -ethadapter$
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: metadata.annotations.annotation_1
+          value: annotation_1_test
+      - equal:
+          path: metadata.annotations.annotation_2
+          value: annotation_2_test

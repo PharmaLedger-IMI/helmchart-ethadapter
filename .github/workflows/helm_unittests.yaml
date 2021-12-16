@@ -1,0 +1,31 @@
+name: Helm Unittests
+on: [push, pull_request]
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    name: Run Helm Unittest
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        name: Checkout
+
+      # https://github.com/marketplace/actions/engineerd-configurator
+      - uses: engineerd/configurator@479197cb150e720c848c8dfbe12da101471258e3 # v0.0.8
+        name: Setup helm
+        with:
+          name: helm
+          url: https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
+          pathInArchive: linux-amd64/helm
+      - run: helm version
+      
+      # https://github.com/quintush/helm-unittest
+      - name: Setup Helm Unittest
+        run: helm plugin install https://github.com/quintush/helm-unittest --version=v0.2.8
+
+      - name: Run Helm Unittest
+        run: helm unittest --helm3=true ethadapter
+

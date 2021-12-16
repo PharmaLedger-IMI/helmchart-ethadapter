@@ -1,0 +1,34 @@
+suite: test deployment with an custom image
+templates:
+  - deployment.yaml
+  - configmap.yaml
+  - secret.yaml
+tests:
+  - it: should work
+    set:
+      config:
+        rpcAddress: "rpcAddress_value"
+        smartContractAddress: "smartContractAddress_value"
+        smartContractAbi: "smartContractAbi_value"
+      secrets:
+        orgAccountJson: "{ \"key\": \"value\" }"
+      image:
+        repository: custom_repository
+        pullPolicy: Always
+        tag: "custom_tag"
+    asserts:
+      - template: deployment.yaml
+        isKind:
+          of: Deployment
+      - template: deployment.yaml
+        matchRegex:
+          path: metadata.name
+          pattern: -ethadapter$
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].image
+          value: custom_repository:custom_tag
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
