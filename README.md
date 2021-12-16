@@ -186,7 +186,12 @@ Run `helm upgrade --helm` for full list of options.
      - [Kubernetes IngressClass](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class)
      - [AWS Load Balancer controller documentation](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/ingress_class/)
 
-## Test
+## Helm Unittesting
+
+[helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
+Tests can be found in [ethadapter/tests](.ethadapter/tests)
+
+## Manual
 
 See [Helm Debugging Templates](https://helm.sh/docs/chart_template_guide/debugging/)
 
