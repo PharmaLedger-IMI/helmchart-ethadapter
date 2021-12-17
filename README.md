@@ -12,17 +12,15 @@ Helm Chart for Ethereum Adapter Service
   <!-- # pragma: allowlist nextline secret -->
   - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
 
-## Installation
+## Usage
 
-## Add Helm Repo
+Add the repo as follow
 
 ```bash
-helm repo add ph-ethadapter https://raw.githubusercontent.com/PharmaLedger-IMI/helmchart-ethadapter/gh-pages
+helm repo add ph-ethadapter https://pharmaledger-imi.github.io/helmchart-ethadapter
 ```
 
-You can then run `helm search repo ph-ethadapter` to see the chart(s). On installation use the `--version` flag to specify a chart version.
-
-## Configuration options
+Then you can run `helm search repo ph-ethadapter` to see the chart(s). On installation use the `--version` flag to specify a chart version.
 
 - [Here](./charts/ethadapter/README.md) is a full list of all configuration values.
 - The [values.yaml file](./charts/ethadapter/values.yaml) shows the raw view of all configuration values.
