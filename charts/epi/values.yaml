@@ -7,11 +7,16 @@ replicaCount: 1
 
 image:
   # -- The repository of the container image
-  repository: public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter
+  repository: public.ecr.aws/n4q1q0z2/pharmaledger-epi
   # -- Image Pull Policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
   tag: ""
+
+## -- The strategy of the deployment. Defaults to Recreate as a PVC is bound to it.
+## See `kubectl explain deployment.spec.strategy` for more and [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
+deploymentStrategy:
+  type: Recreate
 
 # -- Secret(s) for pulling an container image from a private registry.
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
@@ -124,18 +129,6 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
-autoscaling:
-  # -- Whether to enable horizontal pod autoscaling or not.
-  # See [https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/](https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/)
-  enabled: false
-  # -- The minimum number of replicas in case autoscaling is enabled.
-  minReplicas: 1
-  # -- The maximum number of replicas in case autoscaling is enabled.
-  maxReplicas: 100
-  # -- The CPU utilization in percentage as a target for autoscaling.
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 # -- Node Selectors in order to assign pods to certain nodes.
 # See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
