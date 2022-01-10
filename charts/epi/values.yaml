@@ -68,17 +68,26 @@ service:
 
 # -- Configuration. Will be put in a configmap.
 # Required values: rpcAddress, smartContractAddress, smartContractAbi
-config: {}
+config:
   # IMPORTANT: Set these values!
   # rpcAddress: "rpcAddress_value"
   # smartContractAddress: "smartContractAddress_value"
   # smartContractAbi: "smartContractAbi_value"
 
+  # -- The Domain, e.g. "epipoc"
+  domain: "epipoc"
+  # -- The Subdomain, should be domain.company, e.g. epipoc.my-company
+  subDomain: "epipoc.bayer"
+  # -- The Vault domain, should be vault.company, e.g. vault.my-company
+  vaultDomain: "vault.bayer"
+  # -- The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000"
+  ethadapterUrl: "https://ethadapter-pilot.535161841476.cloud.bayer.com:3000"
+
 # -- Secret/Sensitive configuration values. Will be put in a secret.
 # Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
-secrets: {}
+secrets:
   # IMPORTANT: Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
-  # orgAccountJson: ""
+  orgAccountJson: "xyxy"
   # orgAccountJsonBase64: ""
 
 ingress:

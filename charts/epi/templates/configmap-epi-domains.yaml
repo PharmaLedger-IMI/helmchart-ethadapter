@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "epi.fullname" . }}-domains
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+data:
+  {{ required "config.domain must be set" .Values.config.domain }}.json: |-
+    {
+      "anchoring": {
+        "type": "ETH",
+        "option": {
+          "endpoint": {{ required "config.ethadapterUrl must be set" .Values.config.ethadapterUrl | quote }}
+        }
+      },
+      "messagesEndpoint": "http://localhost:8080/mappingEngine/{{ required "config.domain must be set" .Values.config.domain }}/{{ required "config.subDomain must be set" .Values.config.subDomain }}/saveResult",
+      "enable": ["mq", "enclave"]
+    }
+
+  {{ required "config.subDomain must be set" .Values.config.subDomain }}.json: |-
+    {
+      "anchoring": {
+        "type": "ETH",
+        "option": {
+          "endpoint": {{ required "config.ethadapterUrl must be set" .Values.config.ethadapterUrl | quote }}
+        }
+      },
+      "enable": ["mq", "enclave"]
+    }
+
+  {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json: |-
+    {
+      "anchoring": {
+        "type": "FS",
+         "option": {
+           "enableBricksLedger": false
+         }
+      },
+      "enable": ["mq", "enclave"]
+    }
+
