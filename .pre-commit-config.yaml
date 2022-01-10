@@ -6,4 +6,3 @@ repos:
       args:
         # Make the tool search for charts under the `charts` directory
         - --chart-search-root=charts
-        - --output-file=CHART.md
