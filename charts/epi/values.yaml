@@ -55,6 +55,25 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+initJob:
+  kubectlImage:
+    # -- The repository of the container image
+    repository: bitnami/kubectl
+    # -- Image Pull Policy
+    pullPolicy: IfNotPresent
+    # -- The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version.
+    tag: "1.21.8"
+  # -- RoleBinding for ServiceAccount used for init Job where Seeds data will be generated and stored into ConfigMap
+  # Default to ClusterRole edit
+  roleBindingRoleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: edit
+
+persistence:
+  storageClassName: "gp2"
+  size: "20Gi"
+
 service:
   # -- Either ClusterIP, NodePort or LoadBalancer.
   # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
