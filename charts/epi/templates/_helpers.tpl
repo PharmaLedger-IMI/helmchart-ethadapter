@@ -74,7 +74,7 @@ Lookup potentially existing seedsBackup data
 */}}
 {{- define "epi.seedsBackupData" -}}
 {{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace (include "epi.configMapSeedsBackupName" .) -}}
-{{- if $configMap -}}
+{{- if and $configMap $configMap.data.seedsBackup -}}
 {{/*
     Reusing existing data
 */}}
