@@ -17,7 +17,6 @@ spec:
     metadata:
       # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -32,47 +31,100 @@ spec:
       serviceAccountName: {{ include "epi.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: init
+        image: busybox@sha256:b7addcf7726309037feb63fdf616f1d6bd93202148977dc93cdd61ffe31657f8 # 1.35.0
+        command:
+          - sh
+          - -c
+          # Wait until seedsBackup file is not empty which means it was initially created by the Kubernetes Job and its value has been populated into the ConfigMap
+          - until [ -s /ePI-workspace/apihub-root/seedsBackup ]; do echo "/ePI-workspace/apihub-root/seedsBackup is empty"; sleep 2; done
+        volumeMounts:
+          - name: epi-seeds-volume
+            mountPath: /ePI-workspace/apihub-root
+            # Note that Secret or ConfigMap values mounted with subPath will not be updated
+            #mountPath: /ePI-workspace/apihub-root/seedsBackup
+            # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
+            #subPath: seedsBackup
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: RPC_ADDRESS
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "epi.fullname" . }}
-                  key: rpcAddress
-            - name: SMARTCONTRACTADDRESS
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "epi.fullname" . }}
-                  key: smartContractAddress
-            - name: SMARTCONTRACTABI
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "epi.fullname" . }}
-                  key: smartContractAbi
-            - name: ORGACCOUNT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "epi.fullname" . }}
-                  key: orgAccountJson
-          ports:
-            - name: http
-              containerPort: 3000
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /check
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /check
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+      - name: epi
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        # livenessProbe:
+        #   httpGet:
+        #     path: /check
+        #     port: http
+        # readinessProbe:
+        #   httpGet:
+        #     path: /check
+        #     port: http
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+          - name: epi-seeds-volume
+            mountPath: /ePI-workspace/apihub-root
+            # Note that Secret or ConfigMap values mounted with subPath will not be updated
+            #mountPath: /ePI-workspace/apihub-root/seedsBackup
+            # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
+            #subPath: seedsBackup
+          - name: epi-external-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/apihub.json
+            subPath: apihub.json
+          - name: epi-bdns-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/bdns.hosts
+            subPath: bdns.hosts
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/env.json
+            subPath: env.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.domain must be set" .Values.config.domain }}.json
+            subPath: {{ required "config.domain must be set" .Values.config.domain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+            subPath: {{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+            subPath: {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/demiurge-wallet/loader/environment.js
+            subPath: demiurge-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-explorer/loader/environment.js
+            subPath: dsu-explorer-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-fabric-wallet/loader/environment.js
+            subPath: dsu-fabric-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
+            subPath: leaflet-environment.js
+      restartPolicy: Always
+      volumes:
+        - name: epi-seeds-volume
+          configMap:
+            name: {{ include "epi.configMapSeedsBackupName" . }}
+        - name: epi-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-config
+        - name: epi-bdns-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-bdns
+        - name: epi-domains-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-domains
+        - name: epi-env-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-environment
+        - name: epi-external-volume
+          persistentVolumeClaim:
+            claimName: epi-pvc-external-volume
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
