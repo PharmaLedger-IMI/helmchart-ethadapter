@@ -33,12 +33,12 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
       - name: init
-        image: busybox@sha256:b7addcf7726309037feb63fdf616f1d6bd93202148977dc93cdd61ffe31657f8 # 1.35.0
+        image: busybox@sha256:e39d9c8ac4963d0b00a5af08678757b44c35ea8eb6be0cdfbeb1282e7f7e6003 # 1.35.0 for linux/amd64
         command:
           - sh
           - -c
           # Wait until seedsBackup file is not empty which means it was initially created by the Kubernetes Job and its value has been populated into the ConfigMap
-          - until [ -s /ePI-workspace/apihub-root/seedsBackup ]; do echo "/ePI-workspace/apihub-root/seedsBackup is empty"; sleep 2; done
+          - testfile=/ePI-workspace/apihub-root/seedsBackup; until [ -s $testfile ]; do echo "File $testfile is empty. Waiting to become populated. This can take a few minutes. See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically"; sleep 5; done; echo "File $testfile was populated. Listing file in directory."; ls -las $testfile;
         volumeMounts:
           - name: epi-seeds-volume
             mountPath: /ePI-workspace/apihub-root
