@@ -1,18 +1,18 @@
-# ethadapter
+# epi
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
 
-A Helm chart for Pharma Ledger Ethereum Adapter Service
+A Helm chart for Pharma Ledger epi (electronic product information) application
 
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
 - These mandatory configuration values:
-  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545`
-  - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
-  - Smart Contract Abi
-  <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
+  - Domain - The Domain - e.g. `epipoc`
+  - Sub Domain - The Sub Domain - e.g. `epipoc.my-company`
+  - Vault Domain - The Vault Domain - e.g. `vault.my-company`
+  - ethadapterUrl - The Full URL of the Ethadapter including protocol and port -  e.g. "https://ethadapter.my-company.com:3000"
+  - bdnsHosts - The Centrally managed and provided BDNS Hosts Config -
 
 ## Usage
 
@@ -30,27 +30,21 @@ It is recommended to put non-sensitive configuration values in an configuration 
 
     ```yaml
     config:
-      rpcAddress: "rpcAddress_value"
-      smartContractAddress: "smartContractAddress_value"
-      smartContractAbi: "smartContractAbi_value"
+      domain: "domain_value"
+      subDomain: "subDomain_value"
+      vaultDomain: "vaultDomain_value"
+      ethadapterUrl: "https://ethadapter.my-company.com:3000"
+      bdnsHosts: |-
+        # ... content of the BDNS Hosts file ...
+
     ```
 
-2. Install via helm to namespace `default` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
+2. Install via helm to namespace `default`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
         --install \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
-    ```
-
-3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
-
-    ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.0 \
-        --install \
-        --values my-config.yaml \
-        --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9"
     ```
 
 ### Expose Service via Load Balancer
@@ -66,25 +60,23 @@ service:
   type: LoadBalancer
 
 config:
-  rpcAddress: "rpcAddress_value"
-  smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
+  # ... config section keys and values ...
 ```
 
 There are more configuration options available like customizing the port and configuring the Load Balancer via annotations (e.g. for configuring SSL Listener).
 
 **Also note:** Annotations are very specific to your environment/cloud provider, see [Kubernetes Service Reference](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) for more information. For Azure, take a look [here](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations).
 
-Sample for AWS (SSL and listening on port 4567 instead 3000 which is the default):
+Sample for AWS (SSL and listening on port 1234 instead 80 which is the default):
 
 ```yaml
 service:
   type: LoadBalancer
-  port: 4567
+  port: 80
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "4567"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "80"
     # https://docs.aws.amazon.com/de_de/elasticloadbalancing/latest/classic/elb-security-policy-table.html
     service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
 
@@ -123,15 +115,13 @@ ingress:
     # The name of the ALB group, can be used to configure a single ALB by multiple ingress objects
     alb.ingress.kubernetes.io/group.name: default
     # Specifies the HTTP path when performing health check on targets.
-    alb.ingress.kubernetes.io/healthcheck-path: /check
+    alb.ingress.kubernetes.io/healthcheck-path: /
     # Specifies the port used when performing health check on targets.
     alb.ingress.kubernetes.io/healthcheck-port: traffic-port
     # Specifies the HTTP status code that should be expected when doing health checks against the specified health check path.
     alb.ingress.kubernetes.io/success-codes: "200"
-    # Listen on HTTPS protocol at port 3000 at the ALB
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":3000}]'
-    # Allow access from a specific IP address only, e.g. from the NAT Gateway of your EPI Cluster
-    alb.ingress.kubernetes.io/inbound-cidrs: 8.8.8.8/32
+    # Listen on HTTPS protocol at port 443 at the ALB
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
     # Use internet facing
     alb.ingress.kubernetes.io/scheme: internet-facing
     # Use most current (as of Dec 2021) encryption ciphers
@@ -140,9 +130,7 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
 
 config:
-  rpcAddress: "rpcAddress_value"
-  smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
+  # ... config section keys and values ...
 ```
 
 ### Additional helm options
@@ -154,11 +142,10 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\"\}"
     ```
 
 2. Wait until installation has finished successfully and the deployment is up and running.
@@ -166,11 +153,10 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
     ```
 
 ### Potential issues
@@ -191,35 +177,6 @@ Run `helm upgrade --helm` for full list of options.
 [helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
 Tests can be found in [tests](./tests)
 
-## Manual Tests
-
-See [Helm Debugging Templates](https://helm.sh/docs/chart_template_guide/debugging/)
-
-```bash
-mkdir -p ./testresults
-rm -rf ./testresults/*
-# https://github.com/helm/helm/issues/5618
-echo ""
-echo "Default values and secret passed as String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
-
-echo ""
-echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
-
-echo ""
-echo "LoadBalancer"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
-
-echo ""
-echo "LoadBalancer and annotations"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
-
-echo ""
-echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
-```
-
 ## Maintainers
 
 | Name | Email | Url |
@@ -231,14 +188,16 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity for scheduling a pod. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
-| autoscaling.enabled | bool | `false` | Whether to enable horizontal pod autoscaling or not. See [https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/](https://kubernetes.io/de/docs/tasks/run-application/horizontal-pod-autoscale/) |
-| autoscaling.maxReplicas | int | `100` | The maximum number of replicas in case autoscaling is enabled. |
-| autoscaling.minReplicas | int | `1` | The minimum number of replicas in case autoscaling is enabled. |
-| autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU utilization in percentage as a target for autoscaling. |
-| config | object | `{}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
+| config | object | `{"bdnsHosts":"{\n    \"epipoc\": {\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.my-company\": {\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.other\": {\n        \"brickStorages\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"anchoringServices\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"notifications\": [\n            \"https://dev.other-company.com\"\n        ]\n    },\n    \"vault.my-company\": {\n        \"replicas\": [],\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    }\n}","domain":"epipoc","ethadapterUrl":"https://ethadapter-pilot.535161841476.cloud.bayer.com:3000","subDomain":"epipoc.bayer","vaultDomain":"vault.bayer"}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
+| config.bdnsHosts | string | `"{\n    \"epipoc\": {\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.my-company\": {\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.other\": {\n        \"brickStorages\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"anchoringServices\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"notifications\": [\n            \"https://dev.other-company.com\"\n        ]\n    },\n    \"vault.my-company\": {\n        \"replicas\": [],\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    }\n}"` | Centrally managed and provided BDNS Hosts Config |
+| config.domain | string | `"epipoc"` | The Domain, e.g. "epipoc" |
+| config.ethadapterUrl | string | `"https://ethadapter-pilot.535161841476.cloud.bayer.com:3000"` | The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000" |
+| config.subDomain | string | `"epipoc.bayer"` | The Subdomain, should be domain.company, e.g. epipoc.my-company |
+| config.vaultDomain | string | `"vault.bayer"` | The Vault domain, should be vault.company, e.g. vault.my-company |
+| deploymentStrategy.type | string | `"Recreate"` |  |
 | fullnameOverride | string | `""` | fullnameOverride completely replaces the generated name. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
-| image.repository | string | `"public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter"` | The repository of the container image |
+| image.repository | string | `"public.ecr.aws/n4q1q0z2/pharmaledger-epi"` | The repository of the container image |
 | image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Secret(s) for pulling an container image from a private registry. See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) |
 | ingress.annotations | object | `{}` | Ingress annotations. For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/) For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/) For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/) For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations) |
@@ -248,16 +207,21 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.0 --values 
 | ingress.hosts[0].paths[0].path | string | `"/"` | The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples) Note: For Ingress Controllers like AWS LB Controller see their specific documentation. |
 | ingress.hosts[0].paths[0].pathType | string | `"ImplementationSpecific"` | The type of path. This value is required since Kubernetes 1.18. For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/) |
 | ingress.tls | list | `[]` |  |
+| initJob.kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
+| initJob.kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image |
+| initJob.kubectlImage.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
+| initJob.roleBindingRoleRef | object | `{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"edit"}` | RoleBinding for ServiceAccount used for init Job where Seeds data will be generated and stored into ConfigMap Default to ClusterRole edit |
 | nameOverride | string | `""` | nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | nodeSelector | object | `{}` | Node Selectors in order to assign pods to certain nodes. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
+| persistence.size | string | `"20Gi"` |  |
+| persistence.storageClassName | string | `"gp2"` |  |
 | podAnnotations | object | `{}` | Annotations added to the pod |
 | podSecurityContext | object | `{}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for a pod |
-| secrets | object | `{}` | Secret/Sensitive configuration values. Will be put in a secret. Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format) |
 | securityContext | object | `{}` | Security Context for the container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
-| service.port | int | `3000` | Port where the service will be exposed |
+| service.port | int | `80` | Port where the service will be exposed |
 | service.type | string | `"ClusterIP"` | Either ClusterIP, NodePort or LoadBalancer. See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/) |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.create | bool | `false` | Specifies whether a service account should be created |
