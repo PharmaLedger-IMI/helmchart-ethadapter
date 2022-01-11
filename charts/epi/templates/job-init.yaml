@@ -28,6 +28,7 @@ spec:
       serviceAccountName: {{ include "epi.fullname" . }}-init
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
       initContainers:
       - name: init-epi
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -84,7 +85,6 @@ spec:
         volumeMounts:
           - name: epi-seeds-volume
             mountPath: /ePI-workspace/apihub-root
-      restartPolicy: Always
       volumes:
           # We use a volume for sharing data between init Container and "main" container
         - name: epi-seeds-volume
