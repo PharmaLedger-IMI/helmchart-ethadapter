@@ -1,0 +1,118 @@
+#
+# This Job runs the epi application once until the seedsBackup has been generated and stores in a ConfigMap.
+#
+# Details:
+# The pod consists of an initContainer and a "main" container which share a temporary volume.
+# A dedicated ServiceAccount with write permissions to the ConfigMap containing the seedsBackup is used by the pod.
+# 1. The epi application runs in the initContainer as background process. 
+#    A foreground process regularly checks if the seedBackup file has been written to the mounted temporary volume.
+#    Then the process exists and the init container stops.
+# 2. The "main" container starts and writes the content of the seedBackup file into a ConfigMap.
+#    It has the permission doing so via the ServiceAccount
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "epi.fullname" . }}-init
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Use the init ServiceAccount which has permissions to write to configMap
+      serviceAccountName: {{ include "epi.fullname" . }}-init
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: init-epi
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        command:
+          - sh
+          - -c
+          - cd $TARGET_FOLDER_NAME; (bash startup-script.sh &); testfile=/ePI-workspace/apihub-root/seedsBackup; until [ -s $testfile ]; do echo "=======>>>>> File $testfile is empty. Waiting to become generated. This can take a few minutes."; sleep 5; done; echo "=======>>>>> File $testfile was generated. Listing file in directory."; ls -las $testfile; echo "Exiting..."; exit 0;
+        volumeMounts:
+            # We mount seeds volume from a temporary volume in order to hand over data from init to main container
+          - name: epi-seeds-volume
+            mountPath: /ePI-workspace/apihub-root
+          - name: epi-external-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/apihub.json
+            subPath: apihub.json
+          - name: epi-bdns-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/bdns.hosts
+            subPath: bdns.hosts
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/env.json
+            subPath: env.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.domain must be set" .Values.config.domain }}.json
+            subPath: {{ required "config.domain must be set" .Values.config.domain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+            subPath: {{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+            subPath: {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/demiurge-wallet/loader/environment.js
+            subPath: demiurge-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-explorer/loader/environment.js
+            subPath: dsu-explorer-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-fabric-wallet/loader/environment.js
+            subPath: dsu-fabric-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
+            subPath: leaflet-environment.js
+      containers:
+      - name: write-configmap
+        image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
+        command:
+          - sh
+          - -c
+          - testfile=/ePI-workspace/apihub-root/seedsBackup; kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -
+        volumeMounts:
+          - name: epi-seeds-volume
+            mountPath: /ePI-workspace/apihub-root
+      restartPolicy: Always
+      volumes:
+          # We use a volume for sharing data between init Container and "main" container
+        - name: epi-seeds-volume
+          emptyDir: {}
+        - name: epi-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-config
+        - name: epi-bdns-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-bdns
+        - name: epi-domains-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-domains
+        - name: epi-env-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-environment
+          # We do not use the real external volume here as we cannot bind it to the Job and to the deployment simultanously
+        - name: epi-external-volume
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
