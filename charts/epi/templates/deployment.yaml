@@ -1,3 +1,7 @@
+#
+# The Deployment of the epi application.
+# An InitContainer blocks execution until the seedBackup file exists in ConfigMap and is filled with data.
+#
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -124,7 +128,7 @@ spec:
             name: {{ include "epi.fullname" . }}-environment
         - name: epi-external-volume
           persistentVolumeClaim:
-            claimName: epi-pvc-external-volume
+            claimName:  {{ include "epi.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
