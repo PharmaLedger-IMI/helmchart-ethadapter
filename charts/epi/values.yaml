@@ -105,92 +105,92 @@ config:
   # -- Centrally managed and provided BDNS Hosts Config
   bdnsHosts: |-
     {
-      "epipoc" : {
-        "anchoringServices": [
-          "$ORIGIN"
-        ],
-        "notifications": [
-          "$ORIGIN"
-        ]
-      },
-      "epipoc.demo" : {
-           "brickStorages": [
+        "epipoc": {
+            "anchoringServices": [
+                "$ORIGIN"
+            ],
+            "notifications": [
+                "$ORIGIN"
+            ]
+        },
+        "epipoc.demo": {
+            "brickStorages": [
                 "https://epidemo.pharmaledger.dev"
-          ],
-          "anchoringServices": [
-            "https://epidemo.pharmaledger.dev"
-          ],
-          "notifications": [
-            "https://epidemo.pharmaledger.dev"
-          ]
-      },
-      "epipoc.msd" : {
-               "brickStorages": [
-                    "https://epipoc.msd-bcn.net"
-              ],
-              "anchoringServices": [
+            ],
+            "anchoringServices": [
+                "https://epidemo.pharmaledger.dev"
+            ],
+            "notifications": [
+                "https://epidemo.pharmaledger.dev"
+            ]
+        },
+        "epipoc.msd": {
+            "brickStorages": [
                 "https://epipoc.msd-bcn.net"
-              ],
-              "notifications": [
+            ],
+            "anchoringServices": [
                 "https://epipoc.msd-bcn.net"
-              ]
-          },
-      "epipoc.jnj" : {
-               "brickStorages": [
-                    "https://intepitest.epi-jnj.com"
-              ],
-              "anchoringServices": [
+            ],
+            "notifications": [
+                "https://epipoc.msd-bcn.net"
+            ]
+        },
+        "epipoc.jnj": {
+            "brickStorages": [
                 "https://intepitest.epi-jnj.com"
-              ],
-              "notifications": [
+            ],
+            "anchoringServices": [
                 "https://intepitest.epi-jnj.com"
-              ]
-          },
-      "epipoc.bayer" : {
-               "brickStorages": [
-                    "$ORIGIN"
-              ],
-              "anchoringServices": [
+            ],
+            "notifications": [
+                "https://intepitest.epi-jnj.com"
+            ]
+        },
+        "epipoc.bayer": {
+            "brickStorages": [
                 "$ORIGIN"
-              ],
-              "notifications": [
+            ],
+            "anchoringServices": [
                 "$ORIGIN"
-              ]
-          },
-      "epipoc.nvs" : {
-                 "brickStorages": [
-                      "https://dev.epi.novartis.com"
-                ],
-                "anchoringServices": [
-                  "https://dev.epi.novartis.com"
-                ],
-                "notifications": [
-                  "https://dev.epi.novartis.com"
-                ]
-            },
-      "epipoc.gsk" : {
-               "brickStorages": [
-                    "https://epi.int.gsk.com"
-              ],
-              "anchoringServices": [
+            ],
+            "notifications": [
+                "$ORIGIN"
+            ]
+        },
+        "epipoc.nvs": {
+            "brickStorages": [
+                "https://dev.epi.novartis.com"
+            ],
+            "anchoringServices": [
+                "https://dev.epi.novartis.com"
+            ],
+            "notifications": [
+                "https://dev.epi.novartis.com"
+            ]
+        },
+        "epipoc.gsk": {
+            "brickStorages": [
                 "https://epi.int.gsk.com"
-              ],
-              "notifications": [
+            ],
+            "anchoringServices": [
                 "https://epi.int.gsk.com"
-              ]
-          },
-      "vault.bayer" : {
-        "replicas": [],
-        "brickStorages": [
-          "$ORIGIN"
-        ],
-        "anchoringServices": [
-          "$ORIGIN"
-        ],
-        "notifications": [
-          "$ORIGIN"
-        ]
-      }
+            ],
+            "notifications": [
+                "https://epi.int.gsk.com"
+            ]
+        },
+        "vault.bayer": {
+            "replicas": [],
+            "brickStorages": [
+                "$ORIGIN"
+            ],
+            "anchoringServices": [
+                "$ORIGIN"
+            ],
+            "notifications": [
+                "$ORIGIN"
+            ]
+        }
     }
 
 # -- Secret/Sensitive configuration values. Will be put in a secret.
