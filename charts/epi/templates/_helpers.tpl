@@ -60,3 +60,29 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+The Name of the ConfigMap for the Seeds Data
+*/}}
+{{- define "epi.configMapSeedsBackupName" -}}
+{{- printf "%s-%s" (include "epi.fullname" .) "seedsbackup" }}
+{{- end }}
+
+{{/*
+Lookup potentially existing seedsBackup data
+*/}}
+{{- define "epi.seedsBackupData" -}}
+{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace (include "epi.configMapSeedsBackupName" .) -}}
+{{- if $configMap -}}
+{{/*
+    Reusing existing data
+*/}}
+seedsBackup: {{ $configMap.data.seedsBackup }}
+{{- else -}}
+{{/*
+    Use new data
+*/}}
+seedsBackup: ""
+{{- end -}}
+{{- end -}}
