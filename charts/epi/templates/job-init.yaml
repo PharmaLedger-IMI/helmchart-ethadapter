@@ -1,0 +1,137 @@
+#
+# This Job runs the epi application once until the seedsBackup has been generated and stores in a ConfigMap.
+#
+# Details:
+# The pod consists of an initContainer and a "main" container which share a temporary volume.
+# A dedicated ServiceAccount with write permissions to the ConfigMap containing the seedsBackup is used by the pod.
+# 1. The epi application runs in the initContainer as background process. 
+#    A foreground process regularly checks if the seedBackup file has been written to the mounted temporary volume.
+#    Then the process exists and the init container stops.
+# 2. The "main" container starts and writes the content of the seedBackup file into a ConfigMap.
+#    It has the permission doing so via the ServiceAccount
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "epi.fullname" . }}-init
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Use the init ServiceAccount which has permissions to write to configMap
+      serviceAccountName: {{ include "epi.fullname" . }}-init
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
+      initContainers:
+      - name: init-epi
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        command:
+          - sh
+          - -c
+          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
+          - cd $TARGET_FOLDER_NAME; 
+            echo "=======> Starting application in background process ...";
+            (bash startup-script.sh &); 
+            testfile=/ePI-workspace/apihub-root/seedsBackup; 
+            destination_folder=/container-shared-data;
+            until [ -s $testfile ]; 
+              do echo "=======> File $testfile is empty. Waiting to become generated. This can take a few minutes."; 
+              sleep 5; 
+            done; 
+            echo "=======> File $testfile was found.";
+            echo "=======> Copying to $destination_folder ..."; 
+            cp $testfile $destination_folder; 
+            echo "=======> Listing file in directory $destination_folder ..."; 
+            ls -las $testfile; 
+            echo "=======> Exiting ..."; 
+            exit 0;
+        volumeMounts:
+          - name: epi-external-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/apihub.json
+            subPath: apihub.json
+          - name: epi-bdns-config-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/bdns.hosts
+            subPath: bdns.hosts
+          - name: epi-config-volume
+            mountPath: /ePI-workspace/env.json
+            subPath: env.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.domain must be set" .Values.config.domain }}.json
+            subPath: {{ required "config.domain must be set" .Values.config.domain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+            subPath: {{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+          - name: epi-domains-volume
+            mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+            subPath: {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/demiurge-wallet/loader/environment.js
+            subPath: demiurge-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-explorer/loader/environment.js
+            subPath: dsu-explorer-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/dsu-fabric-wallet/loader/environment.js
+            subPath: dsu-fabric-environment.js
+          - name: epi-env-volume
+            mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
+            subPath: leaflet-environment.js
+            # We mount a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      containers:
+      - name: write-configmap
+        image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
+        command:
+          - sh
+          - -c
+          - echo "=======> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ...";
+            testfile=/container-shared-data/seedsBackup; 
+            kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -;
+        volumeMounts:
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      volumes:
+        - name: epi-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-config
+        - name: epi-bdns-config-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-bdns
+        - name: epi-domains-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-domains
+        - name: epi-env-volume
+          configMap:
+            name: {{ include "epi.fullname" . }}-environment
+        - name: epi-external-volume
+          persistentVolumeClaim:
+            claimName:  {{ include "epi.fullname" . }}
+          # Extra volume for passing data (seedsBackup) from initContainer to main container
+          # aka sharing data, see https://www.stratoscale.com/blog/kubernetes/kubernetes-how-to-share-disk-storage-between-containers-in-a-pod/
+        - name: container-shared-data
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

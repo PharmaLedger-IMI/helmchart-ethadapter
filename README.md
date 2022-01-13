@@ -22,7 +22,8 @@ You will find the Helm charts in subfolders of [charts](charts).
 
 | Name | Description |
 | ---- | ------ |
-| [ethadapter](charts/ethadapter/README.md) | Pharma Ledger Ethereum Adapter Service |
+| [ethadapter](charts/ethadapter/README.md) | A Helm chart for Pharma Ledger Ethereum Adapter Service |
+| [epi](charts/epi/README.md) | A Helm chart for Pharma Ledger epi (electronic product information) application |
 
 ## Helm Unittesting
 
