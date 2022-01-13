@@ -38,6 +38,7 @@ spec:
         command:
           - sh
           - -c
+          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
           - cd $TARGET_FOLDER_NAME; (bash startup-script.sh &); testfile=/ePI-workspace/apihub-root/seedsBackup; until [ -s $testfile ]; do echo "=======>>>>> File $testfile is empty. Waiting to become generated. This can take a few minutes."; sleep 5; done; echo "=======>>>>> File $testfile was generated. Listing file in directory."; ls -las $testfile; echo "Exiting..."; exit 0;
         volumeMounts:
             # We mount seeds volume from a temporary volume in order to hand over data from init to main container
