@@ -19,6 +19,25 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
+## How Seeds backup will be put into ConfigMap
+
+Every time, on startup the application checks the existence of the so called SeedsBackup.
+
+1. If it does not exists - what's the case on first initial startup, also see output from logfile = `File ./apihub-root/seedsBackup does not exist, hopefully you are doing an initial build by generating fresh seeds` - then the apps will be generated, but onto the brick storage and their addresses put into the seedsbackup file.
+2. Now (in a manual deployment), the content of seedsBackup needed to be put into a Kubernetes Configmap and the pod to be restarted manually.
+3. On the next start, the application detects the existing seedsBackup and skips app generation process.
+
+This helm chart automates the manual steps.
+
+1. The application itself is managed by a Kubernetes deployment which specifies a Pod containing an initContainer and a container for epi application.
+The initContainer blocks starting the epi application container until the ConfigMap contains a SeedBackup file.
+2. A Kubernetes Job (which runs only once), defines a Pod containing an initContainer and a container.
+The initContainer runs the epi application which generates apps and seedsBackup and stops after creation of seedsbackup.
+Then the "main" container starts which writes SeedsBackup into a Kubernetes ConfigMap (where the initContainer of the deployment is waiting for).
+3. Now the Kubernetes Job ends and the initContainer of the deployment detects the seedsBackup file and exit which starts the epi application in the container.
+
+Herefore
+
 ### Quick install with internal service of type ClusterIP
 
 By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
@@ -188,12 +207,12 @@ Tests can be found in [tests](./tests)
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity for scheduling a pod. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
-| config | object | `{"bdnsHosts":"{\n    \"epipoc\": {\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.my-company\": {\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.other\": {\n        \"brickStorages\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"anchoringServices\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"notifications\": [\n            \"https://dev.other-company.com\"\n        ]\n    },\n    \"vault.my-company\": {\n        \"replicas\": [],\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    }\n}","domain":"epipoc","ethadapterUrl":"https://ethadapter-pilot.535161841476.cloud.bayer.com:3000","subDomain":"epipoc.bayer","vaultDomain":"vault.bayer"}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
-| config.bdnsHosts | string | `"{\n    \"epipoc\": {\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.my-company\": {\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    },\n    \"epipoc.other\": {\n        \"brickStorages\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"anchoringServices\": [\n            \"https://dev.other-company.com\"\n        ],\n        \"notifications\": [\n            \"https://dev.other-company.com\"\n        ]\n    },\n    \"vault.my-company\": {\n        \"replicas\": [],\n        \"brickStorages\": [\n            \"$ORIGIN\"\n        ],\n        \"anchoringServices\": [\n            \"$ORIGIN\"\n        ],\n        \"notifications\": [\n            \"$ORIGIN\"\n        ]\n    }\n}"` | Centrally managed and provided BDNS Hosts Config |
+| config | object | `{"bdnsHosts":"{\n  \"epipoc\": {\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.my-company\": {\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.other\": {\n      \"brickStorages\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"anchoringServices\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"notifications\": [\n          \"https://epipoc.other-company.com\"\n      ]\n  },\n  \"vault.my-company\": {\n      \"replicas\": [],\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  }\n}","domain":"epipoc","ethadapterUrl":"https://ethadapter.my-company.com:3000","subDomain":"epipoc.my-company","vaultDomain":"vault.my-company"}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
+| config.bdnsHosts | string | `"{\n  \"epipoc\": {\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.my-company\": {\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.other\": {\n      \"brickStorages\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"anchoringServices\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"notifications\": [\n          \"https://epipoc.other-company.com\"\n      ]\n  },\n  \"vault.my-company\": {\n      \"replicas\": [],\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  }\n}"` | Centrally managed and provided BDNS Hosts Config |
 | config.domain | string | `"epipoc"` | The Domain, e.g. "epipoc" |
-| config.ethadapterUrl | string | `"https://ethadapter-pilot.535161841476.cloud.bayer.com:3000"` | The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000" |
-| config.subDomain | string | `"epipoc.bayer"` | The Subdomain, should be domain.company, e.g. epipoc.my-company |
-| config.vaultDomain | string | `"vault.bayer"` | The Vault domain, should be vault.company, e.g. vault.my-company |
+| config.ethadapterUrl | string | `"https://ethadapter.my-company.com:3000"` | The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000" |
+| config.subDomain | string | `"epipoc.my-company"` | The Subdomain, should be domain.company, e.g. epipoc.my-company |
+| config.vaultDomain | string | `"vault.my-company"` | The Vault domain, should be vault.company, e.g. vault.my-company |
 | deploymentStrategy.type | string | `"Recreate"` |  |
 | fullnameOverride | string | `""` | fullnameOverride completely replaces the generated name. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
