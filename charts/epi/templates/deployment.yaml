@@ -41,14 +41,31 @@ spec:
           - sh
           - -c
           # Wait until seedsBackup file is not empty which means it was initially created by the Kubernetes Job and its value has been populated into the ConfigMap
-          - testfile=/ePI-workspace/apihub-root/seedsBackup; until [ -s $testfile ]; do echo "File $testfile is empty. Waiting to become populated. This can take a few minutes. See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically"; sleep 5; done; echo "File $testfile was populated. Listing file in directory."; ls -las $testfile;
+          - testfile=/epi-seeds-volume/seedsBackup; 
+            destination_folder=/container-shared-data;
+            until [ -s $testfile ]; 
+              do echo "=======> File $testfile is empty. Waiting to become populated. This can take a few minutes. See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically"; 
+              sleep 5; 
+            done; 
+            echo "=======> File $testfile was populated.";
+            echo "=======> Copying to $destination_folder ..."; 
+            cp $testfile $destination_folder; 
+            echo "=======> Listing file in directory $destination_folder ..."; 
+            ls -las $testfile; 
+            echo "=======> Exiting ..."; 
+            exit 0;
         volumeMounts:
-          - name: epi-seeds-volume
-            mountPath: /ePI-workspace/apihub-root
-            # Note that Secret or ConfigMap values mounted with subPath will not be updated
-            #mountPath: /ePI-workspace/apihub-root/seedsBackup
+            # Mount seedsBackup file from ConfigMap.
+            # Important: Note that we DO not use 'subPath: seedsBackup' here 
+            # as Secret or ConfigMap values mounted with subPath will not be updated onto a file system!!!
             # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
+            # Therefore we mount a whole folder
             #subPath: seedsBackup
+          - name: epi-seeds-volume
+            mountPath: /epi-seeds-volume
+            # We mount a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
       containers:
       - name: epi
         securityContext:
@@ -69,13 +86,23 @@ spec:
         #     port: http
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+        command:
+          - sh
+          - -c
+          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
+          - echo "=======> Copying SeedsBackup from /container-shared-data/seedsBackup to /ePI-workspace/apihub-root/seedsBackup ...";
+            cp /container-shared-data/seedsBackup /ePI-workspace/apihub-root/seedsBackup;
+            echo "=======> Listing directory /ePI-workspace/apihub-root ...";
+            cd $TARGET_FOLDER_NAME; 
+            echo "=======> Starting application ...";
+            bash startup-script.sh; 
         volumeMounts:
-          - name: epi-seeds-volume
-            mountPath: /ePI-workspace/apihub-root
-            # Note that Secret or ConfigMap values mounted with subPath will not be updated
-            #mountPath: /ePI-workspace/apihub-root/seedsBackup
-            # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
-            #subPath: seedsBackup
+          # Do not mount epi-seeds-volume anymore with subPath as that value won't be updated if ConfigMap has changed!
+          # Also we cannot mount it without subPath as this would overwrite the whole folder with an empty folder.
+          # That's the reason why we need to copy the seedsBackup to its destination!
+          # - name: epi-seeds-volume
+          #   mountPath: /ePI-workspace/apihub-root
+          #   subPath: seedsBackup
           - name: epi-external-volume
             mountPath: /ePI-workspace/apihub-root/external-volume
           - name: epi-config-volume
@@ -108,6 +135,9 @@ spec:
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
             subPath: leaflet-environment.js
+            # We mount a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
       restartPolicy: Always
       volumes:
         - name: epi-seeds-volume
@@ -128,6 +158,10 @@ spec:
         - name: epi-external-volume
           persistentVolumeClaim:
             claimName:  {{ include "epi.fullname" . }}
+          # Extra volume for passing data (seedsBackup) from initContainer to main container
+          # aka sharing data, see https://www.stratoscale.com/blog/kubernetes/kubernetes-how-to-share-disk-storage-between-containers-in-a-pod/
+        - name: container-shared-data
+          emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

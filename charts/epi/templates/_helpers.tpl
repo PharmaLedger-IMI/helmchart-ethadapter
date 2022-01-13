@@ -78,7 +78,7 @@ Lookup potentially existing seedsBackup data
 {{/*
     Reusing existing data
 */}}
-seedsBackup: {{ $configMap.data.seedsBackup | default "" }}
+seedsBackup: {{ $configMap.data.seedsBackup | default "" | quote }}
 {{- else -}}
 {{/*
     Use new data

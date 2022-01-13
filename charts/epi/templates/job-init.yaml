@@ -40,20 +40,20 @@ spec:
           - -c
           # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
           - cd $TARGET_FOLDER_NAME; 
-            echo "=======>>>>> Starting application in background process ...";
+            echo "=======> Starting application in background process ...";
             (bash startup-script.sh &); 
             testfile=/ePI-workspace/apihub-root/seedsBackup; 
             destination_folder=/container-shared-data;
             until [ -s $testfile ]; 
-              do echo "=======>>>>> File $testfile is empty. Waiting to become generated. This can take a few minutes."; 
+              do echo "=======> File $testfile is empty. Waiting to become generated. This can take a few minutes."; 
               sleep 5; 
             done; 
-            echo "=======>>>>> File $testfile was found.";
-            echo "=======>>>>> Copying to $destination_folder ..."; 
+            echo "=======> File $testfile was found.";
+            echo "=======> Copying to $destination_folder ..."; 
             cp $testfile $destination_folder; 
-            echo "=======>>>>> Listing file in directory $destination_folder ..."; 
+            echo "=======> Listing file in directory $destination_folder ..."; 
             ls -las $testfile; 
-            echo "=======>>>>> Exiting ..."; 
+            echo "=======> Exiting ..."; 
             exit 0;
         volumeMounts:
           - name: epi-external-volume
@@ -88,7 +88,7 @@ spec:
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
             subPath: leaflet-environment.js
-            # We mount seeds volume from a temporary volume in order to hand over data from init to main container
+            # We mount a temporary volume in order to hand over data from init to main container
           - name: container-shared-data
             mountPath: /container-shared-data
       containers:
@@ -97,9 +97,9 @@ spec:
         command:
           - sh
           - -c
-            echo "=======>>>>> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ...";
+          - echo "=======> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ...";
             testfile=/container-shared-data/seedsBackup; 
-            kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -
+            kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -;
         volumeMounts:
           - name: container-shared-data
             mountPath: /container-shared-data
