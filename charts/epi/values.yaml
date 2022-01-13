@@ -96,56 +96,56 @@ config:
   # -- The Domain, e.g. "epipoc"
   domain: "epipoc"
   # -- The Subdomain, should be domain.company, e.g. epipoc.my-company
-  subDomain: "epipoc.bayer"
+  subDomain: "epipoc.my-company"
   # -- The Vault domain, should be vault.company, e.g. vault.my-company
-  vaultDomain: "vault.bayer"
+  vaultDomain: "vault.my-company"
   # -- The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000"
-  ethadapterUrl: "https://ethadapter-pilot.535161841476.cloud.bayer.com:3000"
+  ethadapterUrl: "https://ethadapter.my-company.com:3000"
   # -- Centrally managed and provided BDNS Hosts Config
   bdnsHosts: |-
     {
-        "epipoc": {
-            "anchoringServices": [
-                "$ORIGIN"
-            ],
-            "notifications": [
-                "$ORIGIN"
-            ]
-        },
-        "epipoc.my-company": {
-            "brickStorages": [
-                "$ORIGIN"
-            ],
-            "anchoringServices": [
-                "$ORIGIN"
-            ],
-            "notifications": [
-                "$ORIGIN"
-            ]
-        },
-        "epipoc.other": {
-            "brickStorages": [
-                "https://dev.other-company.com"
-            ],
-            "anchoringServices": [
-                "https://dev.other-company.com"
-            ],
-            "notifications": [
-                "https://dev.other-company.com"
-            ]
-        },
-        "vault.my-company": {
-            "replicas": [],
-            "brickStorages": [
-                "$ORIGIN"
-            ],
-            "anchoringServices": [
-                "$ORIGIN"
-            ],
-            "notifications": [
-                "$ORIGIN"
-            ]
-        }
+      "epipoc": {
+          "anchoringServices": [
+              "$ORIGIN"
+          ],
+          "notifications": [
+              "$ORIGIN"
+          ]
+      },
+      "epipoc.my-company": {
+          "brickStorages": [
+              "$ORIGIN"
+          ],
+          "anchoringServices": [
+              "$ORIGIN"
+          ],
+          "notifications": [
+              "$ORIGIN"
+          ]
+      },
+      "epipoc.other": {
+          "brickStorages": [
+              "https://epipoc.other-company.com"
+          ],
+          "anchoringServices": [
+              "https://epipoc.other-company.com"
+          ],
+          "notifications": [
+              "https://epipoc.other-company.com"
+          ]
+      },
+      "vault.my-company": {
+          "replicas": [],
+          "brickStorages": [
+              "$ORIGIN"
+          ],
+          "anchoringServices": [
+              "$ORIGIN"
+          ],
+          "notifications": [
+              "$ORIGIN"
+          ]
+      }
     }
 
 ingress:
