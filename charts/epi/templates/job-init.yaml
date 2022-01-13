@@ -39,11 +39,23 @@ spec:
           - sh
           - -c
           # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
-          - cd $TARGET_FOLDER_NAME; (bash startup-script.sh &); testfile=/ePI-workspace/apihub-root/seedsBackup; until [ -s $testfile ]; do echo "=======>>>>> File $testfile is empty. Waiting to become generated. This can take a few minutes."; sleep 5; done; echo "=======>>>>> File $testfile was generated. Listing file in directory."; ls -las $testfile; echo "Exiting..."; exit 0;
+          - cd $TARGET_FOLDER_NAME; 
+            echo "=======>>>>> Starting application in background process ...";
+            (bash startup-script.sh &); 
+            testfile=/ePI-workspace/apihub-root/seedsBackup; 
+            destination_folder=/container-shared-data;
+            until [ -s $testfile ]; 
+              do echo "=======>>>>> File $testfile is empty. Waiting to become generated. This can take a few minutes."; 
+              sleep 5; 
+            done; 
+            echo "=======>>>>> File $testfile was found.";
+            echo "=======>>>>> Copying to $destination_folder ..."; 
+            cp $testfile $destination_folder; 
+            echo "=======>>>>> Listing file in directory $destination_folder ..."; 
+            ls -las $testfile; 
+            echo "=======>>>>> Exiting ..."; 
+            exit 0;
         volumeMounts:
-            # We mount seeds volume from a temporary volume in order to hand over data from init to main container
-          - name: epi-seeds-volume
-            mountPath: /ePI-workspace/apihub-root
           - name: epi-external-volume
             mountPath: /ePI-workspace/apihub-root/external-volume
           - name: epi-config-volume
@@ -76,20 +88,22 @@ spec:
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
             subPath: leaflet-environment.js
+            # We mount seeds volume from a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
       containers:
       - name: write-configmap
         image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
         command:
           - sh
           - -c
-          - testfile=/ePI-workspace/apihub-root/seedsBackup; kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -
+            echo "=======>>>>> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ...";
+            testfile=/container-shared-data/seedsBackup; 
+            kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -
         volumeMounts:
-          - name: epi-seeds-volume
-            mountPath: /ePI-workspace/apihub-root
+          - name: container-shared-data
+            mountPath: /container-shared-data
       volumes:
-          # We use a volume for sharing data between init Container and "main" container
-        - name: epi-seeds-volume
-          emptyDir: {}
         - name: epi-config-volume
           configMap:
             name: {{ include "epi.fullname" . }}-config
@@ -102,8 +116,12 @@ spec:
         - name: epi-env-volume
           configMap:
             name: {{ include "epi.fullname" . }}-environment
-          # We do not use the real external volume here as we cannot bind it to the Job and to the deployment simultanously
         - name: epi-external-volume
+          persistentVolumeClaim:
+            claimName:  {{ include "epi.fullname" . }}
+          # Extra volume for passing data (seedsBackup) from initContainer to main container
+          # aka sharing data, see https://www.stratoscale.com/blog/kubernetes/kubernetes-how-to-share-disk-storage-between-containers-in-a-pod/
+        - name: container-shared-data
           emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
