@@ -2,10 +2,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "epi.fullname" . }}-init
-{{- with .Values.initJob.roleBindingRoleRef }}
 roleRef:
-  {{- toYaml . | nindent 2 }}
-{{- end }}
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "epi.fullname" . }}-init
 subjects:
 - kind: ServiceAccount
   name: {{ include "epi.fullname" . }}-init

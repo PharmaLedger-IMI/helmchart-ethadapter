@@ -229,7 +229,6 @@ Tests can be found in [tests](./tests)
 | initJob.kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
 | initJob.kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image |
 | initJob.kubectlImage.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
-| initJob.roleBindingRoleRef | object | `{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"edit"}` | RoleBinding for ServiceAccount used for init Job where Seeds data will be generated and stored into ConfigMap Default to ClusterRole edit |
 | nameOverride | string | `""` | nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | nodeSelector | object | `{}` | Node Selectors in order to assign pods to certain nodes. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
 | persistence.size | string | `"20Gi"` |  |
