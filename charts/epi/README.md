@@ -1,6 +1,6 @@
 # epi
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger epi (electronic product information) application
 
@@ -61,7 +61,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 2. Install via helm to namespace `default`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.1 \
         --install \
         --values my-config.yaml \
     ```
@@ -161,7 +161,7 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.1 \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
@@ -172,7 +172,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.0 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.1 \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
@@ -229,7 +229,6 @@ Tests can be found in [tests](./tests)
 | initJob.kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
 | initJob.kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image |
 | initJob.kubectlImage.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
-| initJob.roleBindingRoleRef | object | `{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"edit"}` | RoleBinding for ServiceAccount used for init Job where Seeds data will be generated and stored into ConfigMap Default to ClusterRole edit |
 | nameOverride | string | `""` | nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | nodeSelector | object | `{}` | Node Selectors in order to assign pods to certain nodes. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
 | persistence.size | string | `"20Gi"` |  |
