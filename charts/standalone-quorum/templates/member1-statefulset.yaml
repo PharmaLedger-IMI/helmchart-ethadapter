@@ -281,7 +281,7 @@ spec:
       volumes:
         - name: keys
           secret:
-            secretName: quorum-member1-keys
+            secretName: quorum-member1-keys # pragma: allowlist secret
         - name: genesis-file
           configMap:
             name: goquorum-genesis-configmap
