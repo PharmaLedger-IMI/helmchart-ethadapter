@@ -8,6 +8,12 @@ A Helm chart for a standalone Quorum network adapted from https://github.com/Con
 
 - [helm 3](https://helm.sh/docs/intro/install/)
 
+## IMPORTANT NOTES
+
+This is an adapted copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/playground/kubectl/quorum-go/ibft](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/playground/kubectl/quorum-go/ibft) with 3 member and 4 validator nodes.
+
+The copy is being used to package the helm chart and publish it in the repo.
+
 ## Usage
 
 - [Here](./README.md#values) is a full list of all configuration values.
