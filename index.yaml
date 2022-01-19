@@ -74,4 +74,50 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/ethadapter-0.1.0/ethadapter-0.1.0.tgz
     version: 0.1.0
-generated: "2022-01-17T13:45:47.921455537Z"
+  goquorum-genesis-dev:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2022-01-19T08:59:03.522555102Z"
+    description: Quorum Genesis generator with Helm chart in Kubernetes
+    digest: 9f55024b8f14f9f603bd97e5a842780b5e6b09faa6710fb954efa529ffda5c35
+    home: https://consensys.net/quorum/
+    keywords:
+    - ethereum
+    - quorum
+    - enterprise
+    - blockchain
+    - pegasys
+    - consensys
+    maintainers:
+    - email: joshua.fernandes@consensys.net
+      name: Joshua Fernandes
+    name: goquorum-genesis-dev
+    sources:
+    - https://consensys.net/quorum/
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-genesis-dev-0.0.1/goquorum-genesis-dev-0.0.1.tgz
+    version: 0.0.1
+  goquorum-node-dev:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2022-01-19T08:59:03.716480019Z"
+    description: Quorum node for a POA network using IBFT for consensys
+    digest: 5ba4a7868b65b48075a97370ff9ec01fd59b728dee7df5798d4eb06f7bf9a37f
+    home: https://consensys.net/quorum/
+    keywords:
+    - ethereum
+    - hyperledger
+    - enterprise
+    - blockchain
+    - pegasys
+    - consensys
+    maintainers:
+    - email: joshua.fernandes@consensys.net
+      name: Joshua Fernandes
+    name: goquorum-node-dev
+    sources:
+    - https://github.com/consensys/quorum
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-node-dev-0.0.1/goquorum-node-dev-0.0.1.tgz
+    version: 0.0.1
+generated: "2022-01-19T08:59:03.716493019Z"
