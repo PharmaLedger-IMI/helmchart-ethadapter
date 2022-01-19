@@ -170,10 +170,10 @@ spec:
       volumes:
         - name: keys
           secret:
-            secretName: quorum-validator2-keys
+            secretName: quorum-validator2-keys # pragma: allowlist secret
         - name: accountkey
           secret:
-            secretName: quorum-validator2-accountkey
+            secretName: quorum-validator2-accountkey # pragma: allowlist secret
         - name: genesis-file
           configMap:
             name: goquorum-genesis-configmap
