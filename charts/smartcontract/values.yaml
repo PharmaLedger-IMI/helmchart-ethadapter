@@ -22,7 +22,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-quorumNodeUrl: "http://goquorum-node-validator-1.quorum:8545"
+quorumNodeUrl: "http://quorum-member1.quorum:8545"
 anchoringSC: |-
   // SPDX-License-Identifier: MIT
   pragma solidity >= 0.5 <= 0.7;
