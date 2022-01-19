@@ -1,0 +1,38 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## IMPORTANT NOTES
+
+This is a copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev/helm/charts/goquorum-node](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev/helm/charts/goquorum-node)
+
+The copy is being used to package the helm chart and publish it in the repo.
+See [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage) for further details.
+
+```
+helm upgrade validator-1 ph-ethadapter/goquorum-node --version={{ template "chart.version" . }} \
+    --install \
+    --namespace quorum --create-namespace
+
+helm upgrade validator-2 ph-ethadapter/goquorum-node --version={{ template "chart.version" . }} \
+    --install \
+    --namespace quorum --create-namespace
+
+helm upgrade validator-3 ph-ethadapter/goquorum-node --version={{ template "chart.version" . }} \
+    --install \
+    --namespace quorum --create-namespace
+
+helm upgrade validator-4 ph-ethadapter/goquorum-node --version={{ template "chart.version" . }} \
+    --install \
+    --namespace quorum --create-namespace
+```
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

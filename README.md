@@ -24,6 +24,8 @@ You will find the Helm charts in subfolders of [charts](charts).
 | ---- | ------ |
 | [ethadapter](charts/ethadapter/README.md) | A Helm chart for Pharma Ledger Ethereum Adapter Service |
 | [epi](charts/epi/README.md) | A Helm chart for Pharma Ledger epi (electronic product information) application |
+| [goquorum-genesis](charts/goquorum-genesis/README.md) | Quorum Genesis generator with Helm chart in Kubernetes |
+| [goquorum-node](charts/goquorum-node/README.md) | Quorum node for a POA network using IBFT for consensys |
 
 ## Helm Unittesting
 

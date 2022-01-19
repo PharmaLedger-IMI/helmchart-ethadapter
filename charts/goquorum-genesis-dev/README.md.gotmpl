@@ -1,0 +1,26 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## IMPORTANT NOTES
+
+This is a copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev/helm/charts/goquorum-genesis](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev/helm/charts/goquorum-genesis)
+
+The copy is being used to package the helm chart and publish it in the repo.
+See [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage) for further details.
+
+```
+helm upgrade genesis ph-ethadapter/goquorum-genesis --version={{ template "chart.version" . }} \
+    --install \
+    --namespace quorum --create-namespace
+```
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
