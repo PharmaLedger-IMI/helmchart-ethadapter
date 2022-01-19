@@ -1,4 +1,4 @@
-# goquorum-node-dev
+# goquorum-node
 
 ![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
@@ -12,19 +12,19 @@ The copy is being used to package the helm chart and publish it in the repo.
 See [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage) for further details.
 
 ```
-helm upgrade validator-1 ph-ethadapter/goquorum-node-dev --version=0.0.1 \
+helm upgrade validator-1 ph-ethadapter/goquorum-node --version=0.0.1 \
     --install \
     --namespace quorum --create-namespace
 
-helm upgrade validator-2 ph-ethadapter/goquorum-node-dev --version=0.0.1 \
+helm upgrade validator-2 ph-ethadapter/goquorum-node --version=0.0.1 \
     --install \
     --namespace quorum --create-namespace
 
-helm upgrade validator-3 ph-ethadapter/goquorum-node-dev --version=0.0.1 \
+helm upgrade validator-3 ph-ethadapter/goquorum-node --version=0.0.1 \
     --install \
     --namespace quorum --create-namespace
 
-helm upgrade validator-4 ph-ethadapter/goquorum-node-dev --version=0.0.1 \
+helm upgrade validator-4 ph-ethadapter/goquorum-node --version=0.0.1 \
     --install \
     --namespace quorum --create-namespace
 ```

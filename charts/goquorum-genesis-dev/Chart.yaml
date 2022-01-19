@@ -1,7 +1,7 @@
 apiVersion: v1
 version: 0.0.1
 appVersion: latest
-name: goquorum-genesis-dev
+name: goquorum-genesis
 description: Quorum Genesis generator with Helm chart in Kubernetes
 keywords:
   - ethereum

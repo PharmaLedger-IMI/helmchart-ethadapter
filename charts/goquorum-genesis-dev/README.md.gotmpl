@@ -12,7 +12,7 @@ The copy is being used to package the helm chart and publish it in the repo.
 See [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/dev#usage) for further details.
 
 ```
-helm upgrade genesis ph-ethadapter/goquorum-genesis-dev --version={{ template "chart.version" . }} \
+helm upgrade genesis ph-ethadapter/goquorum-genesis --version={{ template "chart.version" . }} \
     --install \
     --namespace quorum --create-namespace
 ```
