@@ -28,10 +28,17 @@ spec:
           - -c
           - cd /template; 
             npm install;
-            echo "Creating Org Account"
+            echo "Creating Org Account";
             node ./stages/OrgAcc/createOrgAcc.js;
-            echo "Anchoring SmartContract at {{ .Values.quorumNodeUrl }}"
+            sleep 1;
+            ls -las /container-shared-data;
+            sleep 1;
+            echo "Anchoring SmartContract at {{ .Values.quorumNodeUrl }}";
             node ./stages/deployAnchoringSC/deployAnchoringSC.js;
+            sleep 1;
+            ls -las /container-shared-data;
+            sleep 1;
+            echo "Exiting init container";
             exit 0;
         volumeMounts:
           - name: code

@@ -18,6 +18,7 @@ data:
             privateKey: newAccount.privateKey,
             address: newAccount.address
         }
+        console.log('Writing to /container-shared-data/orgAcc.json');
         fs.writeFileSync('/container-shared-data/orgAcc.json',JSON.stringify(orgAccData));
     }
     createOrgAcc();
