@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "smartcontract.fullname" . }}
+  labels:
+    {{- include "smartcontract.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Use the ServiceAccount which has permissions to write to configMap
+      serviceAccountName: {{ include "smartcontract.fullname" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
+      initContainers:
+      - name: init
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        command:
+          - sh
+          - -c
+          - cd /template; 
+            npm install;
+            node ./stages/OrgAcc/createOrgAcc.js;
+            exit 0;
+        volumeMounts:
+          - name: code
+            mountPath: /template/package.json
+            subPath: package.json
+          - name: code
+            mountPath: /template/package-lock.json
+            subPath: package-lock.json
+          - name: code
+            mountPath: /template/stages/OrgAcc/createOrgAcc.js
+            subPath: createOrgAcc.js
+            # We mount a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      containers:
+      - name: write-configmap
+        image: "{{ .Values.kubectlImage.repository }}:{{ .Values.kubectlImage.tag }}"
+        command:
+          - sh
+          - -c
+          - echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameOrgAccount" . }} ...";
+            testfile=/container-shared-data/orgAcc.json; 
+            kubectl create configmap {{ include "smartcontract.configMapNameOrgAccount" . }} --from-file=orgAccount.json=$testfile --dry-run=client -o yaml | kubectl apply -f -;
+        volumeMounts:
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      volumes:
+        - name: code
+          configMap:
+            name: {{ include "smartcontract.fullname" . }}-code
+        - name: container-shared-data
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
