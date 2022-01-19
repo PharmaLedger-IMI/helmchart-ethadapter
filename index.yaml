@@ -74,6 +74,29 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/ethadapter-0.1.0/ethadapter-0.1.0.tgz
     version: 0.1.0
+  goquorum-genesis:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2022-01-19T09:36:07.253245435Z"
+    description: Quorum Genesis generator with Helm chart in Kubernetes
+    digest: e8227ce25d591eb173adeb1b120f88dd9456f8a24fff12baaf4bd93f846d4798
+    home: https://consensys.net/quorum/
+    keywords:
+    - ethereum
+    - quorum
+    - enterprise
+    - blockchain
+    - pegasys
+    - consensys
+    maintainers:
+    - email: joshua.fernandes@consensys.net
+      name: Joshua Fernandes
+    name: goquorum-genesis
+    sources:
+    - https://consensys.net/quorum/
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-genesis-0.0.1/goquorum-genesis-0.0.1.tgz
+    version: 0.0.1
   goquorum-genesis-dev:
   - apiVersion: v1
     appVersion: latest
@@ -96,6 +119,29 @@ entries:
     - https://consensys.net/quorum/
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-genesis-dev-0.0.1/goquorum-genesis-dev-0.0.1.tgz
+    version: 0.0.1
+  goquorum-node:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2022-01-19T09:36:07.437516169Z"
+    description: Quorum node for a POA network using IBFT for consensys
+    digest: 1a34e51ea6e2d308879d0266d9a335267020349cb82cc39fb8df4b13bd8e36b3
+    home: https://consensys.net/quorum/
+    keywords:
+    - ethereum
+    - hyperledger
+    - enterprise
+    - blockchain
+    - pegasys
+    - consensys
+    maintainers:
+    - email: joshua.fernandes@consensys.net
+      name: Joshua Fernandes
+    name: goquorum-node
+    sources:
+    - https://github.com/consensys/quorum
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-node-0.0.1/goquorum-node-0.0.1.tgz
     version: 0.0.1
   goquorum-node-dev:
   - apiVersion: v1
@@ -120,4 +166,4 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-node-dev-0.0.1/goquorum-node-dev-0.0.1.tgz
     version: 0.0.1
-generated: "2022-01-19T08:59:03.716493019Z"
+generated: "2022-01-19T09:36:07.43752967Z"
