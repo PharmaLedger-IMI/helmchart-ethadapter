@@ -142,7 +142,7 @@ data:
 
     function executeAnchoringSCDeployment() {
         const Web3 = require('web3');
-        const web3 = new Web3('{{ .Values.quorumNodeUrl }}'); // your geth
+        const web3 = new Web3('{{ .Values.config.quorumNodeUrl }}'); // your geth
         deployAnchoringSC(web3,"anchoringSC", [], (err, data) =>{
             if (err){
                 console.log(err);
@@ -155,7 +155,7 @@ data:
     executeAnchoringSCDeployment();
 
   anchoringSC.sol: |-
-{{ .Values.anchoringSC | indent 4 }}
+{{ .Values.config.anchoringSC | indent 4 }}
 
   package.json: |-
     {

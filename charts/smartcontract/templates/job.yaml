@@ -39,7 +39,7 @@ spec:
             node ./stages/OrgAcc/createOrgAcc.js
 
             echo ""
-            echo "Anchoring SmartContract at {{ .Values.quorumNodeUrl }}"
+            echo "Anchoring SmartContract at {{ .Values.config.quorumNodeUrl }}"
             node ./stages/deployAnchoringSC/deployAnchoringSC.js
 
             echo ""
