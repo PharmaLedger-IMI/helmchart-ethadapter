@@ -61,14 +61,14 @@ service:
   # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
   annotations: {}
 
-# -- Configuration. Will be put in a configmap.
-# Required values: rpcAddress, smartContractAddress, smartContractAbi
 config:
   # -- URL of the Quorum node
   rpcAddress: "http://quorum-member1.quorum:8545"
-  # -- Address of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey'
+  # -- Address of the Smart Contract.
+  # If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey'
   smartContractAddress: ""
-  # -- Abi (interface) of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey'
+  # -- Abi (interface) of the Smart Contract.
+  # If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey'
   smartContractAbi: ""
 
   # -- The name of the existing ConfigMap to look for in case values are not explictly defined via smartContractAddress and smartContractAbi
@@ -78,12 +78,12 @@ config:
   # -- The key of the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined
   smartContractConfigMapAbiKey: "abi"
 
-# -- Secret/Sensitive configuration values. Will be put in a secret.
-# Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
 secrets:
-  # -- Org Account in JSON format. If not set/empty and also orgAccountJsonBase64 is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
+  # -- Org Account in JSON format. 
+  # If not set/empty and also orgAccountJsonBase64 is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
   orgAccountJson: ""
-  # -- Org Account in JSON format base64 encoded. If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
+  # -- Org Account in JSON format base64 encoded. 
+  # If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
   orgAccountJsonBase64: ""
   # -- The name of the existing Secret to look for in case orgAccountJson or orgAccountJsonBase64 is not explictly set
   smartContractSecretName: "smartcontract-org-account"
