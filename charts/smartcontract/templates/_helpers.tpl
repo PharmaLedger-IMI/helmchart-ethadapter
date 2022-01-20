@@ -91,7 +91,7 @@ info.json: ""
 {{/*
 The Name of the ConfigMap for the Anchoring SmartContract Data
 */}}
-{{- define "smartcontract.configMapNameAnchoringSmartContract" -}}
+{{- define "smartcontract.configMapNameAnchoringInfo" -}}
 {{- printf "%s-%s" (include "smartcontract.fullname" .) "anchoring-info" }}
 {{- end }}
 
@@ -99,7 +99,7 @@ The Name of the ConfigMap for the Anchoring SmartContract Data
 Lookup potentially existing AnchoringSmartContract data
 */}}
 {{- define "smartcontract.anchoringSmartContractData" -}}
-{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace (include "smartcontract.configMapNameAnchoringSmartContract" .) -}}
+{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace (include "smartcontract.configMapNameAnchoringInfo" .) -}}
 {{- if $configMap -}}
 {{/*
     Reusing existing data

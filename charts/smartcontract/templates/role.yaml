@@ -6,7 +6,7 @@ rules:
 - apiGroups:
   - ""
   resourceNames:
-  - {{ include "smartcontract.configMapNameAnchoringSmartContract" . | quote }}
+  - {{ include "smartcontract.configMapNameAnchoringInfo" . | quote }}
   resources:
   - configmaps
   verbs:

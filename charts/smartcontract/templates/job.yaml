@@ -73,8 +73,8 @@ spec:
             
             echo "=======> Writing or updating Secret {{ include "smartcontract.secretNameOrgAccount" . }} ..."
             kubectl create secret generic {{ include "smartcontract.secretNameOrgAccount" . }} --from-file=info.json=/container-shared-data/orgAccInfo.json --dry-run=client -o yaml | kubectl apply -f -
-            echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameAnchoringSmartContract" . }} ..."
-            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringSmartContract" . }} --from-file=info.json=/container-shared-data/anchoringSCInfo.json --from-file=abi.json=/container-shared-data/anchoringSCAbi.json --from-file=address=/container-shared-data/anchoringSCAddress --dry-run=client -o yaml | kubectl apply -f -
+            echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameAnchoringInfo" . }} ..."
+            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringInfo" . }} --from-file=info.json=/container-shared-data/anchoringSCInfo.json --from-file=abi.json=/container-shared-data/anchoringSCAbi.json --from-file=address=/container-shared-data/anchoringSCAddress --dry-run=client -o yaml | kubectl apply -f -
             sleep 600
         volumeMounts:
           - name: container-shared-data
