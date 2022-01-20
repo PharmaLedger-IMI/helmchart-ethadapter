@@ -154,7 +154,7 @@ data:
     executeAnchoringSCDeployment();
 
   anchoringSC.sol: |-
-{{ .Values.anchoringSC | indent 4}}
+{{ .Values.anchoringSC | indent 4 }}
 
   package.json: |-
     {
