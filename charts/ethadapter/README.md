@@ -1,6 +1,6 @@
 # ethadapter
 
-![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger Ethereum Adapter Service
 
@@ -38,7 +38,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 2. Install via helm to namespace `default` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.2 \
+    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
         --install \
         --values my-config.yaml \
         --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
@@ -47,7 +47,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.2 \
+    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
         --install \
         --values my-config.yaml \
         --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9"
@@ -154,7 +154,7 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.2 \
+    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
@@ -166,7 +166,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.1.2 \
+    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
@@ -201,23 +201,23 @@ rm -rf ./testresults/*
 # https://github.com/helm/helm/issues/5618
 echo ""
 echo "Default values and secret passed as String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
 
 echo ""
 echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
 
 echo ""
 echo "LoadBalancer"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
 
 echo ""
 echo "LoadBalancer and annotations"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
 
 echo ""
 echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
 ```
 
 ## Maintainers
@@ -235,7 +235,12 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values 
 | autoscaling.maxReplicas | int | `100` | The maximum number of replicas in case autoscaling is enabled. |
 | autoscaling.minReplicas | int | `1` | The minimum number of replicas in case autoscaling is enabled. |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU utilization in percentage as a target for autoscaling. |
-| config | object | `{}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
+| config.rpcAddress | string | `"http://quorum-member1.quorum:8545"` | URL of the Quorum node |
+| config.smartContractAbi | string | `""` | Abi (interface) of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey' |
+| config.smartContractAddress | string | `""` | Address of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey' |
+| config.smartContractConfigMapAbiKey | string | `"abi"` | The key of the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined |
+| config.smartContractConfigMapAddressKey | string | `"address"` | The key of the Address in the existing ConfigMap in case smartContractAddress is not explictly defined |
+| config.smartContractConfigMapName | string | `"smartcontract-anchoring-info"` | The name of the existing ConfigMap to look for in case values are not explictly defined via smartContractAddress and smartContractAbi |
 | fullnameOverride | string | `""` | fullnameOverride completely replaces the generated name. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
 | image.repository | string | `"public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter"` | The repository of the container image |
@@ -254,7 +259,10 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.1.2 --values 
 | podSecurityContext | object | `{}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for a pod |
-| secrets | object | `{}` | Secret/Sensitive configuration values. Will be put in a secret. Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format) |
+| secrets.orgAccountJson | string | `""` | Org Account in JSON format.  If not set/empty and also orgAccountJsonBase64 is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey' |
+| secrets.orgAccountJsonBase64 | string | `""` | Org Account in JSON format base64 encoded.  If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey' |
+| secrets.smartContractSecretName | string | `"smartcontract-org-account"` | The name of the existing Secret to look for in case orgAccountJson or orgAccountJsonBase64 is not explictly set |
+| secrets.smartContractSecretOrgAccountJsonKey | string | `"infoJson"` | The key of Org Account Json in the existing Secret in case orgAccountJson or orgAccountJsonBase64 is not explictly set |
 | securityContext | object | `{}` | Security Context for the container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
 | service.port | int | `3000` | Port where the service will be exposed |
