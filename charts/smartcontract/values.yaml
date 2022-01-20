@@ -26,7 +26,7 @@ fullnameOverride: ""
 
 config:
   # -- Name of the Secret with the Org Account info. If empty uses a generic name
-  secretOrgAccountName: "smartcontract-org-account"
+  secretOrgAccountName: "smartcontract-org-account" # pragma: allowlist secret
   # -- Name of the ConfigMap with the anchoring info. If empty uses a generic name
   configMapAnchoringInfoName: "smartcontract-anchoring-info"
   # -- URL of the Quorum node
