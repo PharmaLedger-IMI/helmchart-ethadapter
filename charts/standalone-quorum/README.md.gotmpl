@@ -1,0 +1,55 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## Requirements
+
+- [helm 3](https://helm.sh/docs/intro/install/)
+
+## IMPORTANT NOTES
+
+This is an adapted copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/playground/kubectl/quorum-go/ibft](https://github.com/ConsenSys/quorum-kubernetes/tree/89bddb3d01342f0e336d908de392b62bb8230bc5/playground/kubectl/quorum-go/ibft) with 3 member and 4 validator nodes.
+
+The copy is being used to package the helm chart and publish it in the repo.
+
+## Usage
+
+- [Here](./README.md#values) is a full list of all configuration values.
+- The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
+
+### Quick install with internal services of type ClusterIP
+
+This helm chart installs the Playground environment for a Quorum Cluster with static configuration values.
+
+Install to namespace `quorum`
+
+    ```bash
+    helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
+        --install \
+        --namespace=quorum --create-namespace
+    ```
+
+### Additional helm options
+
+Run `helm upgrade --helm` for full list of options.
+
+1. Wait until installation has finished successfully and the deployment is up and running.
+
+    Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
+
+    ```bash
+    helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
+        --install \
+        --wait --timeout=1200s \
+        --namespace=quorum --create-namespace
+    ```
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
