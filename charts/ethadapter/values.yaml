@@ -86,9 +86,9 @@ secrets:
   # If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
   orgAccountJsonBase64: ""
   # -- The name of the existing Secret to look for in case orgAccountJson or orgAccountJsonBase64 is not explictly set
-  smartContractSecretName: "smartcontract-org-account"
+  smartContractSecretName: "smartcontract-org-account" # pragma: allowlist secret
   # -- The key of Org Account Json in the existing Secret in case orgAccountJson or orgAccountJsonBase64 is not explictly set
-  smartContractSecretOrgAccountJsonKey: "infoJson"
+  smartContractSecretOrgAccountJsonKey: "infoJson" # pragma: allowlist secret
 
 ingress:
   # -- Whether to create ingress or not.
