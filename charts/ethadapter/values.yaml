@@ -63,18 +63,27 @@ service:
 
 # -- Configuration. Will be put in a configmap.
 # Required values: rpcAddress, smartContractAddress, smartContractAbi
-config: {}
-  # IMPORTANT: Set these values!
-  # rpcAddress: "rpcAddress_value"
-  # smartContractAddress: "smartContractAddress_value"
-  # smartContractAbi: "smartContractAbi_value"
+config:
+  # -- URL of the Quorum node
+  rpcAddress: "http://quorum-member1.quorum:8545"
+  # -- Address of the Smart Contract
+  smartContractAddress: ""
+  # -- Abi (interface) of the Smart Contract
+  smartContractAbi: ""
+
+  # -- The name of the existing ConfigMap to look for in case values are not explictly defined via smartContractAddress and smartContractAbi
+  smartContractConfigMapName: "smartcontract-anchoring-info"
+  # -- The key for the Address in the existing ConfigMap in case smartContractAddress is not explictly defined
+  smartContractConfigMapAddressKey: "address"
+  # -- The key for the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined
+  smartContractConfigMapAbiKey: "abi"
 
 # -- Secret/Sensitive configuration values. Will be put in a secret.
 # Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
-secrets: {}
+secrets:
   # IMPORTANT: Either set orgAccountJson or orgAccountJsonBase64 (=the value for the secret in base64 encoded format)
-  # orgAccountJson: ""
-  # orgAccountJsonBase64: ""
+  orgAccountJson: "xy"
+  orgAccountJsonBase64: ""
 
 ingress:
   # -- Whether to create ingress or not.

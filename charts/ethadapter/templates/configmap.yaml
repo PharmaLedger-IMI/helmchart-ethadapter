@@ -6,5 +6,5 @@ metadata:
     {{- include "ethadapter.labels" . | nindent 4 }}
 data:
   rpcAddress: {{ required "config.rpcAddress must be set" .Values.config.rpcAddress | quote }}
-  smartContractAddress: {{ required "config.smartContractAddress must be set" .Values.config.smartContractAddress | quote }}
-  smartContractAbi: {{ required "config.smartContractAbi must be set" .Values.config.smartContractAbi | quote }}
+  smartContractAddress: {{ include "ethadapter.smartContractAddress" . | quote }}
+  smartContractAbi: {{ include "ethadapter.smartContractAbi" . | quote }}

@@ -60,3 +60,45 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+
+
+
+
+
+{{/*
+The value for the Smart Contract Address
+1. Look if value is explictly defined
+2. If not, look if ConfigMap exists and get value from there
+*/}}
+{{- define "ethadapter.smartContractAddress" -}}
+{{- if .Values.config.smartContractAddress }}
+{{- .Values.config.smartContractAddress }}
+{{- else }}
+{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace .Values.config.smartContractConfigMapName -}}
+{{- if $configMap -}}
+{{- required "Either config.smartContractAddress must be set or value must exists in ConfigMap" (get $configMap.data .Values.config.smartContractConfigMapAddressKey) }}
+{{- else -}}
+{{- required "Either config.smartContractAddress must be set or ConfigMap with value must exists" "" }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The value for the Smart Contract Abi
+1. Look if value is explictly defined
+2. If not, look if ConfigMap exists and get value from there
+*/}}
+{{- define "ethadapter.smartContractAbi" -}}
+{{- if .Values.config.smartContractAbi }}
+{{- .Values.config.smartContractAbi }}
+{{- else }}
+{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace .Values.config.smartContractConfigMapName -}}
+{{- if $configMap -}}
+{{- required "Either config.smartContractAbi must be set or value must exists in ConfigMap" (get $configMap.data .Values.config.smartContractConfigMapAbiKey) }}
+{{- else -}}
+{{- required "Either config.smartContractAbi must be set or ConfigMap with value must exists" "" }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
