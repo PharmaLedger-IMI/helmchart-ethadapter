@@ -63,10 +63,6 @@ Create the name of the service account to use
 
 
 
-
-
-
-
 {{/*
 The value for the Smart Contract Address
 1. Look if value is explictly defined
@@ -99,6 +95,27 @@ The value for the Smart Contract Abi
 {{- required "Either config.smartContractAbi must be set or value must exists in ConfigMap" (get $configMap.data .Values.config.smartContractConfigMapAbiKey) }}
 {{- else -}}
 {{- required "Either config.smartContractAbi must be set or ConfigMap with value must exists" "" }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+The value for the Org JSON
+1. Look if value is explictly defined
+2. If not, look if Secret exists and get value from there
+*/}}
+{{- define "ethadapter.orgAccountJson" -}}
+{{- if .Values.secrets.orgAccountJson }}
+{{- .Values.secrets.orgAccountJson }}
+{{- else if .Values.secrets.orgAccountJsonBase64 }}
+{{- .Values.secrets.orgAccountJsonBase64 | b64dec }}
+{{- else }}
+{{- $secret := lookup "v1" "Secret" .Release.Namespace .Values.secrets.smartContractSecretName -}}
+{{- if $secret -}}
+{{- required "Either secrets.orgAccountJson/secrets.orgAccountJsonBase64 must be set or value must exists in Secret" (get $secret.data .Values.secrets.smartContractSecretOrgAccountJsonKey | b64dec) }}
+{{- else -}}
+{{- required "Either secrets.orgAccountJson/secrets.orgAccountJsonBase64 must be set or Secret with value must exists" "" }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
