@@ -1,0 +1,106 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "smartcontract.fullname" . }}
+  labels:
+    {{- include "smartcontract.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Use the ServiceAccount which has permissions to write to configMap
+      serviceAccountName: {{ include "smartcontract.fullname" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
+      initContainers:
+      - name: init
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |
+          
+            cd /template
+            
+            echo "npm install"
+            npm install
+            
+            echo ""
+            echo "Creating Org Account"
+            node ./stages/OrgAcc/createOrgAcc.js
+
+            echo ""
+            echo "Anchoring SmartContract at {{ .Values.config.quorumNodeUrl }}"
+            node ./stages/deployAnchoringSC/deployAnchoringSC.js
+
+            echo ""
+            echo "Show content of folder /container-shared-data"
+            ls -las /container-shared-data
+
+            echo ""
+            echo "Exiting init container"
+            exit 0
+        volumeMounts:
+          - name: code
+            mountPath: /template/package.json
+            subPath: package.json
+          - name: code
+            mountPath: /template/package-lock.json
+            subPath: package-lock.json
+          - name: code
+            mountPath: /template/stages/OrgAcc/createOrgAcc.js
+            subPath: createOrgAcc.js
+          - name: code
+            mountPath: /template/stages/deployAnchoringSC/deployAnchoringSC.js
+            subPath: deployAnchoringSC.js
+          - name: code
+            mountPath: /template/anchoring-sc/anchoringSC.sol
+            subPath: anchoringSC.sol
+            # We mount a temporary volume in order to hand over data from init to main container
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      containers:
+      - name: write-configmap
+        image: "{{ .Values.kubectlImage.repository }}:{{ .Values.kubectlImage.tag }}"
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |
+            
+            echo "=======> Writing or updating Secret {{ include "smartcontract.secretNameOrgAccount" . }} ..."
+            kubectl create secret generic {{ include "smartcontract.secretNameOrgAccount" . }} --from-file=infoJson=/container-shared-data/orgAccInfo.json --dry-run=client -o yaml | kubectl apply -f -
+
+            echo ""
+            echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameAnchoringInfo" . }} ..."
+            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringInfo" . }} --from-file=infoJson=/container-shared-data/anchoringSCInfo.json --from-file=abi=/container-shared-data/anchoringSCAbi.json --from-file=address=/container-shared-data/anchoringSCAddress --dry-run=client -o yaml | kubectl apply -f -
+        volumeMounts:
+          - name: container-shared-data
+            mountPath: /container-shared-data
+      volumes:
+        - name: code
+          configMap:
+            name: {{ include "smartcontract.fullname" . }}-code
+        - name: container-shared-data
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

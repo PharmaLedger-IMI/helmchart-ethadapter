@@ -1,0 +1,13 @@
+1. Configmap name
+{{ include "smartcontract.configMapNameAnchoringInfo" . }}
+1a. Get value infoJson 
+kubectl get configmap -n={{ .Release.Namespace }} -o jsonpath='{.data.infoJson}' {{ include "smartcontract.configMapNameAnchoringInfo" . }}
+1b. Get value abi 
+kubectl get configmap -n={{ .Release.Namespace }} -o jsonpath='{.data.abi}' {{ include "smartcontract.configMapNameAnchoringInfo" . }}
+1c. Get value address 
+kubectl get configmap -n={{ .Release.Namespace }} -o jsonpath='{.data.address}' {{ include "smartcontract.configMapNameAnchoringInfo" . }}
+
+2. Secret name 
+{{ include "smartcontract.secretNameOrgAccount" . }}
+2a. Get Secret infoJson 
+kubectl get secret -n={{ .Release.Namespace }} -o jsonpath='{.data.infoJson}' {{ include "smartcontract.secretNameOrgAccount" . }}  | base64 -d
