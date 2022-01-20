@@ -77,13 +77,13 @@ Lookup potentially existing orgAccountData data
 {{/*
     Reusing existing data
 */}}
-info.json: |-
-    {{ $secret.data.info.json | default "" }}
+infoJson: |-
+    {{ $secret.data.infoJson | default "" }}
 {{- else -}}
 {{/*
     Use new data
 */}}
-info.json: ""
+infoJson: ""
 {{- end -}}
 {{- end -}}
 
@@ -104,18 +104,18 @@ Lookup potentially existing AnchoringSmartContract data
 {{/*
     Reusing existing data
 */}}
-info.json: |-
-    {{ $configMap.data.info.json | default "" }}
-abi.json: |-
-    {{ $configMap.data.abi.json | default "" }}
+infoJson: |-
+    {{ $configMap.data.infoJson | default "" }}
+abi: |-
+    {{ $configMap.data.abi | default "" }}
 address: |-
     {{ $configMap.data.address | default "" }}
 {{- else -}}
 {{/*
     Use new data
 */}}
-info.json: ""
-abi.json: ""
+infoJson: ""
+abi: ""
 address: ""
 {{- end -}}
 {{- end -}}
