@@ -33,3 +33,52 @@ You will find the Helm charts in subfolders of [charts](charts).
 
 [helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
 Samples: See [ethadapter/tests](./charts/ethadapter/tests)
+
+## Sandbox environment
+
+### Install Quorum network, Smart Contract, ethadapter and epi application
+
+```bash
+echo "Deploying sandbox quorum"
+helm upgrade --install quorum ph-ethadapter/standalone-quorum \
+    --namespace=quorum --create-namespace \
+    --version=0.1.0 \
+    --wait --wait-for-jobs \
+    --timeout 10m
+
+echo ""
+echo "Deploying SmartContract"
+helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+    --namespace=ethadapter --create-namespace \
+    --version=0.1.0 \
+    --wait --wait-for-jobs \
+    --timeout 10m
+
+echo ""
+echo "Deploying EthAdapter"
+echo "Note: It will use values from ConfigMap and Secret created by SmartContract deployment"
+helm upgrade --install ethadapter ph-ethadapter/ethadapter \
+    --namespace=ethadapter --create-namespace \
+    --version=0.2.0 \
+    --wait --wait-for-jobs \
+    --timeout 10m
+
+echo ""
+echo "Deploying epi application"
+helm upgrade --install epi ph-ethadapter/epi \
+    --namespace=epi --create-namespace \
+    --version=0.1.2 \
+    --wait --wait-for-jobs \
+    --timeout 10m \
+    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000
+```
+
+### Uninstall
+
+```bash
+helm delete --namespace=epi epi
+helm delete --namespace=ethadapter ethadapter
+helm delete --namespace=ethadapter smartcontract
+helm delete --namespace=quorum quorum
+kubectl delete namespace epi ethadapter quorum
+```
