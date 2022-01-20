@@ -166,4 +166,15 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-node-dev-0.0.1/goquorum-node-dev-0.0.1.tgz
     version: 0.0.1
-generated: "2022-01-19T09:36:07.43752967Z"
+  standalone-quorum:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2022-01-20T10:07:59.401652372Z"
+    description: A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
+    digest: ed06c633c4dbbf5731d42a786aa435313d23bba6e858cda14f32176be594f6d5
+    name: standalone-quorum
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.1.0/standalone-quorum-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-01-20T10:07:59.401667474Z"
