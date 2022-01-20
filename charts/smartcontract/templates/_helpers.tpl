@@ -65,7 +65,7 @@ Create the name of the service account to use
 The Name of the Secret for the OrgAccount Data
 */}}
 {{- define "smartcontract.secretNameOrgAccount" -}}
-{{- printf "%s-%s" (include "smartcontract.fullname" .) "org-account" }}
+{{- default (printf "%s-%s" (include "smartcontract.fullname" .) "org-account") .Values.config.secretOrgAccountName }}
 {{- end }}
 
 {{/*
@@ -92,7 +92,7 @@ infoJson: ""
 The Name of the ConfigMap for the Anchoring SmartContract Data
 */}}
 {{- define "smartcontract.configMapNameAnchoringInfo" -}}
-{{- printf "%s-%s" (include "smartcontract.fullname" .) "anchoring-info" }}
+{{- default (printf "%s-%s" (include "smartcontract.fullname" .) "anchoring-info") .Values.config.configMapAnchoringInfoName }}
 {{- end }}
 
 {{/*
