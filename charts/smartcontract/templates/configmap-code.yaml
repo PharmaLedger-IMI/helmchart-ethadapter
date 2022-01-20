@@ -47,6 +47,7 @@ data:
             const anchoringInfo = JSON.parse(fs.readFileSync('/container-shared-data/anchoringSCInfo.json').toString());
             anchoringInfo.contractAddress = tr.contractAddress;
             fs.writeFileSync('/container-shared-data/anchoringSCInfo.json', JSON.stringify(anchoringInfo));
+            fs.writeFileSync('/container-shared-data/anchoringSCAddress', tr.contractAddress);
             callback(undefined, tr.contractAddress);
         });
     }
@@ -111,6 +112,7 @@ data:
         const abi = output.contracts["anchoringSC.sol"]["anchoringSC"].abi;
 
         fs.writeFileSync('/container-shared-data/anchoringSCInfo.json',JSON.stringify({abi: abi}),{encoding:'utf8'});
+        fs.writeFileSync('/container-shared-data/anchoringSCAbi.json',JSON.stringify(abi),{encoding:'utf8'});
         return {abi, bytecode };
     }
 

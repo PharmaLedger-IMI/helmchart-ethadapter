@@ -24,22 +24,25 @@ spec:
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
         command:
-          - sh
+          - /bin/sh
           - -c
-          - cd /template; 
-            npm install;
-            echo "Creating Org Account";
-            node ./stages/OrgAcc/createOrgAcc.js;
-            sleep 1;
-            ls -las /container-shared-data;
-            sleep 1;
-            echo "Anchoring SmartContract at {{ .Values.quorumNodeUrl }}";
-            node ./stages/deployAnchoringSC/deployAnchoringSC.js;
-            sleep 1;
-            ls -las /container-shared-data;
-            sleep 1;
-            echo "Exiting init container";
-            exit 0;
+        args:
+          - |
+          
+            cd /template
+            npm install
+            echo "Creating Org Account"
+            node ./stages/OrgAcc/createOrgAcc.js
+            sleep 1
+            ls -las /container-shared-data
+            sleep 1
+            echo "Anchoring SmartContract at {{ .Values.quorumNodeUrl }}"
+            node ./stages/deployAnchoringSC/deployAnchoringSC.js
+            sleep 1
+            ls -las /container-shared-data
+            sleep 1
+            echo "Exiting init container"
+            exit 0
         volumeMounts:
           - name: code
             mountPath: /template/package.json
@@ -63,12 +66,16 @@ spec:
       - name: write-configmap
         image: "{{ .Values.kubectlImage.repository }}:{{ .Values.kubectlImage.tag }}"
         command:
-          - sh
+          - /bin/sh
           - -c
-          - echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameOrgAccount" . }} ...";
-            testfile=/container-shared-data/orgAcc.json; 
-            kubectl create configmap {{ include "smartcontract.configMapNameOrgAccount" . }} --from-file=orgAccount.json=$testfile --dry-run=client -o yaml | kubectl apply -f -;
-            sleep 600;
+        args:
+          - |
+            
+            echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameOrgAccount" . }} ..."
+            kubectl create configmap {{ include "smartcontract.configMapNameOrgAccount" . }} --from-file=orgAccount.json=/container-shared-data/orgAcc.json --dry-run=client -o yaml | kubectl apply -f -
+            echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameOrgAccount" . }} ..."
+            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringSmartContract" . }} --from-file=info.json=/container-shared-data/anchoringSCInfo.json --from-file=abi.json=/container-shared-data/anchoringSCAbi.json --from-file=address=/container-shared-data/anchoringSCAddress --dry-run=client -o yaml | kubectl apply -f -
+            sleep 600
         volumeMounts:
           - name: container-shared-data
             mountPath: /container-shared-data

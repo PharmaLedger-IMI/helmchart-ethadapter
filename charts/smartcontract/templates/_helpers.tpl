@@ -86,3 +86,36 @@ orgAccount.json: |-
 orgAccount.json: ""
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+The Name of the ConfigMap for the Anchoring SmartContract Data
+*/}}
+{{- define "smartcontract.configMapNameAnchoringSmartContract" -}}
+{{- printf "%s-%s" (include "smartcontract.fullname" .) "anchoring-smartcontract" }}
+{{- end }}
+
+{{/*
+Lookup potentially existing AnchoringSmartContract data
+*/}}
+{{- define "smartcontract.anchoringSmartContractData" -}}
+{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace (include "smartcontract.configMapNameAnchoringSmartContract" .) -}}
+{{- if $configMap -}}
+{{/*
+    Reusing existing data
+*/}}
+info.json: |-
+    {{ $configMap.data.info.json | default "" }}
+abi.json: |-
+    {{ $configMap.data.abi.json | default "" }}
+address: |-
+    {{ $configMap.data.address | default "" }}
+{{- else -}}
+{{/*
+    Use new data
+*/}}
+info.json: ""
+abi.json: ""
+address: ""
+{{- end -}}
+{{- end -}}
