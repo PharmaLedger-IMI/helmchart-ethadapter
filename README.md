@@ -80,4 +80,5 @@ helm delete --namespace=epi epi
 helm delete --namespace=ethadapter ethadapter
 helm delete --namespace=ethadapter smartcontract
 helm delete --namespace=quorum quorum
+kubectl delete namespace epi ethadapter quorum
 ```
