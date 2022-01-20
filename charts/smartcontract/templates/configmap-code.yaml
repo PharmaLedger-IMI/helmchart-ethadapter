@@ -18,14 +18,13 @@ data:
             privateKey: newAccount.privateKey,
             address: newAccount.address
         }
-        console.log('Writing to /container-shared-data/orgAcc.json');
-        fs.writeFileSync('/container-shared-data/orgAcc.json',JSON.stringify(orgAccData));
+        fs.writeFileSync('/container-shared-data/orgAccInfo.json',JSON.stringify(orgAccData));
     }
     createOrgAcc();
 
   deployAnchoringSC.js: |-
     function getAccountInfo(){
-        const orgAcc = JSON.parse(require('fs').readFileSync('/container-shared-data/orgAcc.json').toString());
+        const orgAcc = JSON.parse(require('fs').readFileSync('/container-shared-data/orgAccInfo.json').toString());
         return {
             privateKey : orgAcc.privateKey,
             account : orgAcc.account

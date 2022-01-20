@@ -6,10 +6,20 @@ rules:
 - apiGroups:
   - ""
   resourceNames:
-  - {{ include "smartcontract.configMapNameOrgAccount" . | quote }}
   - {{ include "smartcontract.configMapNameAnchoringSmartContract" . | quote }}
   resources:
   - configmaps
+  verbs:
+  - get
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resourceNames:
+  - {{ include "smartcontract.secretNameOrgAccount" . | quote }}
+  resources:
+  - secrets
   verbs:
   - get
   - create
