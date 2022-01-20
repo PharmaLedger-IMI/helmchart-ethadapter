@@ -4,7 +4,7 @@ metadata:
   name: quorum-validator1
   labels:
     app: validator1
-  
+  namespace: {{ .Release.Namespace }}
 spec:
   type: ClusterIP
   selector:

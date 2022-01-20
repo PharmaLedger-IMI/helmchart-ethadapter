@@ -4,7 +4,7 @@ metadata:
   name: quorum-permissions-nodes-configmap
   labels:
     app: quorum-permissions-nodes-configmap
-  
+  namespace: {{ .Release.Namespace }}
 data:
 
   permissioned-nodes.json: |-

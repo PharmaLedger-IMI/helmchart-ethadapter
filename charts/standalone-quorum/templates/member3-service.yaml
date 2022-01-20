@@ -4,7 +4,7 @@ metadata:
   name: quorum-member3
   labels:
     app: member3
-  
+  namespace: {{ .Release.Namespace }}
 spec:
   type: ClusterIP
   selector:

@@ -4,7 +4,7 @@ metadata:
   name: goquorum-genesis-configmap
   labels:
     app: goquorum-genesis-configmap
-  
+  namespace: {{ .Release.Namespace }}
 data:
   genesis.json: |-
     {

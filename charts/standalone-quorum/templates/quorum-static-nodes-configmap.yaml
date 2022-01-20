@@ -4,7 +4,7 @@ metadata:
   name: quorum-static-nodes-configmap
   labels:
     app: quorum-static-nodes-configmap
-  
+  namespace: {{ .Release.Namespace }}
 data:
   static-nodes.json: |-
     [
