@@ -166,6 +166,17 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/goquorum-node-dev-0.0.1/goquorum-node-dev-0.0.1.tgz
     version: 0.0.1
+  smartcontract:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2022-01-20T13:50:28.796188505Z"
+    description: A Helm chart for deploying the Smartcontract on a goquorum node
+    digest: d1992b6b2af4440bb093de6fb098ced5c5f05fe730f38ed4d2c62153dd053c7d
+    name: smartcontract
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/smartcontract-0.1.0/smartcontract-0.1.0.tgz
+    version: 0.1.0
   standalone-quorum:
   - apiVersion: v2
     appVersion: latest
@@ -177,4 +188,4 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.1.0/standalone-quorum-0.1.0.tgz
     version: 0.1.0
-generated: "2022-01-20T10:07:59.401667474Z"
+generated: "2022-01-20T13:50:28.796216906Z"
