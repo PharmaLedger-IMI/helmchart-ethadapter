@@ -71,6 +71,7 @@ helm upgrade --install epi ph-ethadapter/epi \
     --wait --wait-for-jobs \
     --timeout 10m \
     --set config.ethadapterUrl=http://ethadapter.ethadapter:3000
+
 ```
 
 ### Uninstall
@@ -81,4 +82,5 @@ helm delete --namespace=ethadapter ethadapter
 helm delete --namespace=ethadapter smartcontract
 helm delete --namespace=quorum quorum
 kubectl delete namespace epi ethadapter quorum
+
 ```
