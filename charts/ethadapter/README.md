@@ -1,6 +1,6 @@
 # ethadapter
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
+![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger Ethereum Adapter Service
 
@@ -14,17 +14,43 @@ A Helm chart for Pharma Ledger Ethereum Adapter Service
   <!-- # pragma: allowlist nextline secret -->
   - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
 
+**NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself
+by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret installed by helm chhart *smartcontract*.
+
 ## Usage
 
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
-### Quick install with internal service of type ClusterIP
+## How it works
 
-By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
-This is to prevent exposing the service to the internet by accident!
+This helm chart creates an own ConfigMap and Secret with required configuration values.
+In case you do not explictly provide `config.smartContractAddress`, `config.smartContractAbi` and `secrets.orgAccountJson` (or `secrets.orgAccountJsonBase64`),
+these values will be read from pre-existing ConfigMap/Secret (provided by helm chart *smartcontract*) in context of the user executing helm.
 
-It is recommended to put non-sensitive configuration values in an configuration file and pass sensitive/secret values via commandline.
+1. The Kubernetes Deployment triggers creation of a ReplicaSet which schedule the pod(s).
+2. A Service exposes the pod. **By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
+This is to prevent exposing the service to the internet by accident!**
+
+![How it works](./docs/ethadapter.drawio.png)
+
+## Installing the Chart
+
+**Note:** It is recommended to put non-sensitive configuration values in an configuration file and pass sensitive/secret values via commandline.
+
+### Sandbox installation - Auto-configure by existing ConfigMap/Secret
+
+To install the chart with the release name `ethadapter` in namespace `ethadapter` and read configuration values from pre-existing ConfigMap/Secret created by helm chart *smartcontract*.
+
+```bash
+helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+  --install \
+  --wait \
+  --timeout 10m
+
+```
+
+### Non-Sandbox installation - Provide required values
 
 1. Create configuration file, e.g. *my-config.yaml*
 
@@ -35,29 +61,37 @@ It is recommended to put non-sensitive configuration values in an configuration 
       smartContractAbi: "smartContractAbi_value"
     ```
 
-2. Install via helm to namespace `default` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
+2. Install via helm to namespace `ethadapter` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
-        --install \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+        --wait \
+        --timeout 10m \
         --values my-config.yaml \
         --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
+
     ```
 
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
-        --install \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+        --wait \
+        --timeout 10m \
         --values my-config.yaml \
         --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9"
+
     ```
 
 ### Expose Service via Load Balancer
 
 In order to expose the service **directly** by an **own dedicated** Load Balancer, just **add** `service.type` with value `LoadBalancer` to your config file (in order to override the default value which is `ClusterIP`).
 
-**Please note:** At AWS using `service.type` = `LoadBalancer` is not recommended any more, as it creates a Classic Load Balancer. Use [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/) with an ingress instead. A full sample is provided later in the docs. Using an Application Load Balancer (managed by AWS LB Controller) increases security (e.g. by using a Web Application Firewall for your http based traffic) and provides more features like hostname, pathname routing or built-in authentication mechanism via OIDC or AWS Cognito.
+**Note:** At AWS using `service.type` = `LoadBalancer` is not recommended any more, as it creates a Classic Load Balancer.
+Use [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/) with an ingress instead.
+A full sample is provided later in the docs.
+Using an Application Load Balancer (managed by AWS LB Controller) increases security (e.g. by using a Web Application Firewall for your http based traffic)
+and provides more features like hostname, pathname routing or built-in authentication mechanism via OIDC or AWS Cognito.
 
 Configuration file *my-config.yaml*
 
@@ -145,33 +179,15 @@ config:
   smartContractAbi: "smartContractAbi_value"
 ```
 
-### Additional helm options
+## Uninstalling the Chart
 
-Run `helm upgrade --helm` for full list of options.
+To uninstall/delete the `ethadapter` deployment:
 
-1. Install to other namespace
+```bash
+helm delete ethadapter \
+  --namespace=ethadapter
 
-    You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
-
-    ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
-        --install \
-        --namespace=my-namespace \
-        --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\"\}"
-    ```
-
-2. Wait until installation has finished successfully and the deployment is up and running.
-
-    Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
-
-    ```bash
-    helm upgrade my-release-name ph-ethadapter/ethadapter --version=0.2.0 \
-        --install \
-        --wait --timeout=600s \
-        --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
-    ```
+```
 
 ### Potential issues
 
@@ -201,23 +217,23 @@ rm -rf ./testresults/*
 # https://github.com/helm/helm/issues/5618
 echo ""
 echo "Default values and secret passed as String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
 
 echo ""
 echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
 
 echo ""
 echo "LoadBalancer"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
 
 echo ""
 echo "LoadBalancer and annotations"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
 
 echo ""
 echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
 ```
 
 ## Maintainers
