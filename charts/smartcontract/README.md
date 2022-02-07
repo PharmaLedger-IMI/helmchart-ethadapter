@@ -23,11 +23,11 @@ OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernete
 
 ![How it works](./docs/smartcontract.drawio.png)
 
-Note: Persisting these setting in Kubernetes resources (Secret and ConfigMap) enables smoothless installation of ethadapter on a Sandbox environment.
+Note: Persisting these setting in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of ethadapter on a Sandbox environment.
 
 ## Quick install
 
-**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`).
+**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise ethadapter cannot auto-configure itself by reading values from Secret and ConfigMap.
 
 ```bash
 helm upgrade --install smartcontract ph-ethadapter/smartcontract \
