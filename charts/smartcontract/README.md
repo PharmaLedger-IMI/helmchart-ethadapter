@@ -29,14 +29,14 @@ Note: Persisting these setting in Kubernetes resources (Secret and ConfigMap) en
 
 **IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`).
 
-    ```bash
-    helm upgrade --install smartcontract ph-ethadapter/smartcontract \
-      --version=0.1.1 \
-      --namespace=ethadapter --create-namespace \
-      --wait --wait-for-jobs \
-      --timeout 10m
+```bash
+helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+  --version=0.1.1 \
+  --namespace=ethadapter --create-namespace \
+  --wait --wait-for-jobs \
+  --timeout 10m
 
-    ```
+```
 
 ## Values
 
