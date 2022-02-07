@@ -28,7 +28,7 @@ This helm chart creates an own ConfigMap and Secret with required configuration 
 In case you do not explictly provide `config.smartContractAddress`, `config.smartContractAbi` and `secrets.orgAccountJson` (or `secrets.orgAccountJsonBase64`),
 these values will be read from pre-existing ConfigMap/Secret (provided by helm chart *smartcontract*) in context of the user executing helm.
 
-1. The Kubernetes Deployment triggers creation of a ReplicaSet which schedule the pod(s).
+1. The Kubernetes Deployment triggers creation of a ReplicaSet which schedules the pod(s).
 2. A Service exposes the pod. **By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
 This is to prevent exposing the service to the internet by accident!**
 
