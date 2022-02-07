@@ -18,7 +18,7 @@ A Helm chart for deploying the Smartcontract on a goquorum node
 
 1. A Kubernetes Job starts a Pod
 2. The Pod generates an *OrgAccount* and anchors the SmartContract on the Quorum Blockchain.
-2. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) is being stored in a Kubernetes ConfigMap.
+3. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) is being stored in a Kubernetes ConfigMap.
 
 ![How it works](./docs/smartcontract.drawio.png)
 
