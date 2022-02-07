@@ -1,8 +1,41 @@
 # smartcontract
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 A Helm chart for deploying the Smartcontract on a goquorum node
+
+## Requirements
+
+- [helm 3](https://helm.sh/docs/intro/install/)
+- URL of the Quorum node to communicate with in order to deploy the smart contract - See config parameter `config.quorumNodeUrl`
+
+## Usage
+
+- [Here](./README.md#values) is a full list of all configuration values.
+- The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
+
+## How it works
+
+1. A Kubernetes Job starts a Pod
+2. The Pod generates an *OrgAccount* and anchors the SmartContract on the Quorum Blockchain.
+2. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) is being stored in a Kubernetes ConfigMap.
+
+![How it works](./docs/smartcontract.drawio.png)
+
+Note: Persisting these setting in Kubernetes resources (Secret and ConfigMap) enables smoothless installation of ethadapter on a Sandbox environment.
+
+### Quick install
+
+**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`).
+
+    ```bash
+    helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+      --version=0.1.1 \
+      --namespace=ethadapter --create-namespace \
+      --wait --wait-for-jobs \
+      --timeout 10m
+
+    ```
 
 ## Values
 
