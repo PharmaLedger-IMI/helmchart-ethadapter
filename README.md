@@ -36,6 +36,10 @@ Samples: See [ethadapter/tests](./charts/ethadapter/tests)
 
 ## Sandbox environment
 
+Abstract Overview
+
+![Abstract Overview](docs/sandbox_abstract_overview.drawio.png)
+
 ### Install Quorum network, Smart Contract, ethadapter and epi application
 
 ```bash
