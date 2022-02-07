@@ -22,12 +22,12 @@ You will find the Helm charts in subfolders of [charts](charts).
 
 | Name | Description |
 | ---- | ------ |
-| [ethadapter](charts/ethadapter/README.md) | A Helm chart for Pharma Ledger Ethereum Adapter Service |
-| [epi](charts/epi/README.md) | A Helm chart for Pharma Ledger epi (electronic product information) application |
+| [ethadapter](charts/ethadapter/README.md) | Pharma Ledger Ethereum Adapter Service |
+| [epi](charts/epi/README.md) | Pharma Ledger epi (electronic product information) application |
 | [goquorum-genesis](charts/goquorum-genesis-dev/README.md) | Quorum Genesis generator with Helm chart in Kubernetes - NOTE: DOES NOT WORK YET!|
 | [goquorum-node](charts/goquorum-node-dev/README.md) | Quorum node for a POA network using IBFT for consensys - NOTE: DOES NOT WORK YET!|
-| [standalone-quorum](charts/standalone-quorum/README.md) | A Helm chart for a standalone Quorum network |
-| [smartcontract](charts/smartcontract/README.md) | A Helm chart for a deploying the smart contract and creating input parameters for ethadapter in form of a ConfigMap and Secret |
+| [standalone-quorum](charts/standalone-quorum/README.md) | **Sandbox only:** Standalone Quorum network |
+| [smartcontract](charts/smartcontract/README.md) | **Sandbox only:** Deployment of the smart contract and creation of input parameters for ethadapter in form of a Kubernetes ConfigMap and Secret |
 
 ## Helm Unittesting
 
