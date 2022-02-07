@@ -1,6 +1,8 @@
 apiVersion: v2
 name: smartcontract
-description: A Helm chart for deploying the Smartcontract on a goquorum node
+description: |
+  A Helm chart for deploying the Smartcontract on a goquorum node and creating an OrgAccount. 
+  OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernetes Secret and ConfigMap to make them usable by other components running on Kubernetes.
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -15,7 +17,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.0
+version: 0.1.1
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to

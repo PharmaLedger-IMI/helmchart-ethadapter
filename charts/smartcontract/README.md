@@ -1,8 +1,54 @@
 # smartcontract
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
-A Helm chart for deploying the Smartcontract on a goquorum node
+A Helm chart for deploying the Smartcontract on a goquorum node and creating an OrgAccount.
+OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernetes Secret and ConfigMap to make them usable by other components running on Kubernetes.
+
+## Requirements
+
+- [helm 3](https://helm.sh/docs/intro/install/)
+- URL of the Quorum node to communicate with in order to deploy the smart contract - See config parameter `config.quorumNodeUrl`
+
+## Usage
+
+- [Here](./README.md#values) is a full list of all configuration values.
+- The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
+
+## How it works
+
+1. A Kubernetes Job will be deployed which triggers scheduling of a Pod
+2. The Pod generates an *OrgAccount* and anchors the SmartContract on the Quorum Blockchain.
+3. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) will being stored in a Kubernetes ConfigMap.
+
+![How it works](./docs/smartcontract.drawio.png)
+
+Note: Persisting these values in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of *ethadapter* on a Sandbox environment.
+
+## Installing the Chart
+
+To install the chart with the release name `smartcontract` in namespace `ethadapter`:
+
+```bash
+helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+  --version=0.1.1 \
+  --namespace=ethadapter --create-namespace \
+  --wait --wait-for-jobs \
+  --timeout 10m
+
+```
+
+**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise *ethadapter* cannot auto-configure itself by reading values from Secret and ConfigMap.
+
+## Uninstalling the Chart
+
+To uninstall/delete the `smartcontract` deployment:
+
+```bash
+helm delete smartcontract \
+  --namespace=ethadapter
+
+```
 
 ## Values
 
