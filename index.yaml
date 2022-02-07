@@ -183,6 +183,19 @@ entries:
   smartcontract:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2022-02-07T14:05:15.533155995Z"
+    description: 'A Helm chart for deploying the Smartcontract on a goquorum node
+      and creating an OrgAccount.  OrgAccount and anchoring info of the Smartcontract
+      will be stored in a Kubernetes Secret and ConfigMap to make them usable by other
+      components running on Kubernetes. '
+    digest: f5e8b020477881aae14825ee88d1a01500238df399559314f2ce87327b575c02
+    name: smartcontract
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/smartcontract-0.1.1/smartcontract-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2022-01-20T13:50:28.796188505Z"
     description: A Helm chart for deploying the Smartcontract on a goquorum node
     digest: d1992b6b2af4440bb093de6fb098ced5c5f05fe730f38ed4d2c62153dd053c7d
@@ -202,4 +215,4 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.1.0/standalone-quorum-0.1.0.tgz
     version: 0.1.0
-generated: "2022-01-20T15:24:40.931204049Z"
+generated: "2022-02-07T14:05:15.533190395Z"
