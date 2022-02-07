@@ -23,7 +23,7 @@ OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernete
 
 ![How it works](./docs/smartcontract.drawio.png)
 
-Note: Persisting these setting in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of ethadapter on a Sandbox environment.
+Note: Persisting these values in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of ethadapter on a Sandbox environment.
 
 ## Quick install
 
