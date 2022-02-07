@@ -31,8 +31,9 @@ You will find the Helm charts in subfolders of [charts](charts).
 
 ## Helm Unittesting
 
-[helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the output of the helm chart.
-Samples: See [ethadapter/tests](./charts/ethadapter/tests)
+[helm-unittest](https://github.com/quintush/helm-unittest) is being used for testing the expected output of the helm chart.
+
+Example: See [ethadapter/tests](./charts/ethadapter/tests)
 
 ## Sandbox environment
 
