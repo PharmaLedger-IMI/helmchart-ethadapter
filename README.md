@@ -47,7 +47,7 @@ Abstract Overview
 echo "Deploying sandbox quorum"
 helm upgrade --install quorum ph-ethadapter/standalone-quorum \
     --namespace=quorum --create-namespace \
-    --version=0.1.0 \
+    --version=0.1.1 \
     --wait --wait-for-jobs \
     --timeout 10m
 

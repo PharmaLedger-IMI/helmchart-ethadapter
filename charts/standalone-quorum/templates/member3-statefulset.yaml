@@ -73,7 +73,7 @@ spec:
               sleep 30
       containers:
         - name: member3-tessera
-          image: quorumengineering/tessera:latest
+          image: quorumengineering/tessera:21.10.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -181,7 +181,7 @@ spec:
                   /tessera/bin/tessera -configfile /data/tm/tessera-config-09.json
 
         - name: member3-quorum
-          image: quorumengineering/quorum:latest
+          image: quorumengineering/quorum:21.10.2
           imagePullPolicy: IfNotPresent
           resources:
             requests:
