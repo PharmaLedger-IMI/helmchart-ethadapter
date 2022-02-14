@@ -77,7 +77,7 @@ spec:
               sleep 30
       containers:
         - name: validator4
-          image: quorumengineering/quorum:latest
+          image: quorumengineering/quorum:21.10.2
           imagePullPolicy: IfNotPresent
           resources:
             requests:
