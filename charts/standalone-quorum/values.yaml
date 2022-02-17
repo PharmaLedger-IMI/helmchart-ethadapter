@@ -6,3 +6,7 @@
 # Static values as of now 18-Jan-2022
 # https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
 #
+config:
+  members:
+    # -- Boolean flag whether 3 "member nodes" running a validator and transaction manager Tessera will be deployed or not.
+    deploy: false

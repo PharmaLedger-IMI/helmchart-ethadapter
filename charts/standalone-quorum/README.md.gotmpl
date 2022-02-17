@@ -14,6 +14,12 @@ This is an adapted copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/
 
 The copy is being used to package the helm chart and publish it in the repo.
 
+## Changelog
+
+- From 0.1.x to 0.2.x
+    - The 3 Member nodes (consisting of validator node and transaction manager Tessera) will not be deployed by default anymore.
+    You can re-enable deployment of 3 members nodes by setting `config.members.enabled` to `true`.
+
 ## Usage
 
 - [Here](./README.md#values) is a full list of all configuration values.
@@ -29,6 +35,7 @@ Install to namespace `quorum`
     helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
         --install \
         --namespace=quorum --create-namespace
+
     ```
 
 ### Additional helm options
@@ -39,12 +46,13 @@ Run `helm upgrade --helm` for full list of options.
 
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
-    ```bash
-    helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
-        --install \
-        --wait --timeout=1200s \
-        --namespace=quorum --create-namespace
-    ```
+        ```bash
+        helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
+            --install \
+            --wait --timeout=1200s \
+            --namespace=quorum --create-namespace
+            
+        ```
 
 {{ template "chart.maintainersSection" . }}
 

@@ -1,4 +1,4 @@
-
+{{- if .Values.config.members.deploy }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -301,3 +301,4 @@ spec:
             sizeLimit: "2Gi"
 
  
+{{- end }}
