@@ -55,7 +55,7 @@ echo ""
 echo "Deploying SmartContract"
 helm upgrade --install smartcontract ph-ethadapter/smartcontract \
     --namespace=ethadapter --create-namespace \
-    --version=0.1.1 \
+    --version=0.2.0 \
     --wait --wait-for-jobs \
     --timeout 10m
 
