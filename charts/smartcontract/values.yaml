@@ -30,7 +30,7 @@ config:
   # -- Name of the ConfigMap with the anchoring info. If empty uses a generic name
   configMapAnchoringInfoName: "smartcontract-anchoring-info"
   # -- URL of the Quorum node
-  quorumNodeUrl: "http://quorum-member1.quorum:8545"
+  quorumNodeUrl: "http://quorum-validator1.quorum:8545"
   # -- Code of the Anchoring SmartContact
   anchoringSC: |-
     // SPDX-License-Identifier: MIT
