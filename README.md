@@ -47,7 +47,9 @@ Abstract Overview
 echo "Deploying sandbox quorum"
 helm upgrade --install quorum ph-ethadapter/standalone-quorum \
     --namespace=quorum --create-namespace \
-    --version=0.2.0 \
+    --version=0.2.1 \
+    --set config.storage.size="10Gi" \
+    --set config.storage.type=pvc \
     --wait --wait-for-jobs \
     --timeout 10m
 

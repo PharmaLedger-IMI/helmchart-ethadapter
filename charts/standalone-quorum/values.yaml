@@ -10,3 +10,12 @@ config:
   members:
     # -- Boolean flag whether 3 "member nodes" running a validator and transaction manager Tessera will be deployed or not.
     deploy: false
+  storage:
+    # -- Size of storage
+    size: "2Gi"
+    # -- Type of storage
+    # Either pvc or local (local=emptyDir)
+    type: "local"
+    # -- The name of the pre-existing storageClass used for the PVC (only needed if type is pvc)
+    # If type is pvc and class is empty string "" then Kubernetes will use the default storage class defined at cluster level
+    class: ""

@@ -31,12 +31,14 @@ This helm chart installs the Playground environment for a Quorum Cluster with st
 
 Install to namespace `quorum`
 
-    ```bash
-    helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
-        --install \
-        --namespace=quorum --create-namespace
+```bash
+helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
+    --install \
+    --namespace=quorum --create-namespace \
+    --set config.storage.size="10Gi" \
+    --set config.storage.type=pvc
 
-    ```
+```
 
 ### Additional helm options
 
@@ -46,13 +48,15 @@ Run `helm upgrade --helm` for full list of options.
 
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
-        ```bash
-        helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
-            --install \
-            --wait --timeout=1200s \
-            --namespace=quorum --create-namespace
-            
-        ```
+    ```bash
+    helm upgrade quorum ph-ethadapter/standalone-quorum --version={{ template "chart.version" . }} \
+        --install \
+        --wait --timeout=1200s \
+        --namespace=quorum --create-namespace \
+        --set config.storage.size="10Gi" \
+        --set config.storage.type=pvc
+        
+    ```
 
 {{ template "chart.maintainersSection" . }}
 
