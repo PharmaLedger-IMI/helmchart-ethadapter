@@ -64,7 +64,7 @@ echo "Deploying EthAdapter"
 echo "Note: It will use values from ConfigMap and Secret created by SmartContract deployment"
 helm upgrade --install ethadapter ph-ethadapter/ethadapter \
     --namespace=ethadapter --create-namespace \
-    --version=0.2.1 \
+    --version=0.3.0 \
     --wait --wait-for-jobs \
     --timeout 10m
 

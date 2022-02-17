@@ -63,7 +63,7 @@ service:
 
 config:
   # -- URL of the Quorum node
-  rpcAddress: "http://quorum-member1.quorum:8545"
+  rpcAddress: "http://quorum-validator1.quorum:8545"
   # -- Address of the Smart Contract.
   # If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey'
   smartContractAddress: ""

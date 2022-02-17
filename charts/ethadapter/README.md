@@ -1,6 +1,6 @@
 # ethadapter
 
-![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger Ethereum Adapter Service
 
@@ -16,6 +16,12 @@ A Helm chart for Pharma Ledger Ethereum Adapter Service
 
 **NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself
 by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret installed by helm chhart *smartcontract*.
+
+## Changelog
+
+- From 0.2.x to 0.3.x
+  - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
+  This reflects the change of chart [standalone-quorum](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/standalone-quorum-0.2.0/charts/standalone-quorum#changelog) from version 0.1.x to 0.2.x where member nodes are not enabled by default.
 
 ## Usage
 
@@ -43,7 +49,7 @@ This is to prevent exposing the service to the internet by accident!**
 To install the chart with the release name `ethadapter` in namespace `ethadapter` and read configuration values from pre-existing ConfigMap/Secret created by helm chart *smartcontract*.
 
 ```bash
-helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
   --install \
   --wait \
   --timeout 10m
@@ -64,7 +70,7 @@ helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
 2. Install via helm to namespace `ethadapter` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
 
     ```bash
-    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
         --wait \
         --timeout 10m \
         --values my-config.yaml \
@@ -75,7 +81,7 @@ helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
 
     ```bash
-    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.2.1 \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
         --wait \
         --timeout 10m \
         --values my-config.yaml \
@@ -217,23 +223,23 @@ rm -rf ./testresults/*
 # https://github.com/helm/helm/issues/5618
 echo ""
 echo "Default values and secret passed as String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
 
 echo ""
 echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
 
 echo ""
 echo "LoadBalancer"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
 
 echo ""
 echo "LoadBalancer and annotations"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
 
 echo ""
 echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
 ```
 
 ## Maintainers
@@ -251,7 +257,7 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.2.1 --values 
 | autoscaling.maxReplicas | int | `100` | The maximum number of replicas in case autoscaling is enabled. |
 | autoscaling.minReplicas | int | `1` | The minimum number of replicas in case autoscaling is enabled. |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU utilization in percentage as a target for autoscaling. |
-| config.rpcAddress | string | `"http://quorum-member1.quorum:8545"` | URL of the Quorum node |
+| config.rpcAddress | string | `"http://quorum-validator1.quorum:8545"` | URL of the Quorum node |
 | config.smartContractAbi | string | `""` | Abi (interface) of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey' |
 | config.smartContractAddress | string | `""` | Address of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey' |
 | config.smartContractConfigMapAbiKey | string | `"abi"` | The key of the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined |

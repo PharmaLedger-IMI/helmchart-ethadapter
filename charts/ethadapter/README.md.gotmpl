@@ -17,6 +17,12 @@
 **NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself 
 by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret installed by helm chhart *smartcontract*.
 
+## Changelog
+
+- From 0.2.x to 0.3.x
+  - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
+  This reflects the change of chart [standalone-quorum](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/standalone-quorum-0.2.0/charts/standalone-quorum#changelog) from version 0.1.x to 0.2.x where member nodes are not enabled by default.
+
 ## Usage
 
 - [Here](./README.md#values) is a full list of all configuration values.
