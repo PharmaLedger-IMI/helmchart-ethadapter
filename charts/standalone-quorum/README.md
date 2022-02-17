@@ -63,7 +63,7 @@ Run `helm upgrade --helm` for full list of options.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.members.deploy | bool | `false` | Boolean flag whether 3 "member nodes" running a validator and transaction manager Tessera will be deployed or not. |
-| config.storage.class | string | `""` | The storageClass (only needed if type is pvc) If type is pvc and class is empty string "" then Kubernetes will use the default storage class defined at cluster level |
+| config.storage.class | string | `""` | The name of the pre-existing storageClass used for the PVC (only needed if type is pvc) If type is pvc and class is empty string "" then Kubernetes will use the default storage class defined at cluster level |
 | config.storage.size | string | `"2Gi"` | Size of storage |
 | config.storage.type | string | `"local"` | Type of storage Either pvc or local (local=emptyDir) |
 

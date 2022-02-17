@@ -16,6 +16,6 @@ config:
     # -- Type of storage
     # Either pvc or local (local=emptyDir)
     type: "local"
-    # -- The storageClass (only needed if type is pvc)
+    # -- The name of the pre-existing storageClass used for the PVC (only needed if type is pvc)
     # If type is pvc and class is empty string "" then Kubernetes will use the default storage class defined at cluster level
     class: ""
