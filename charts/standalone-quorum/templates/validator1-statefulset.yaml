@@ -176,7 +176,29 @@ spec:
           configMap:
             name: quorum-permissions-nodes-configmap
         - name: data
+          {{- if eq .Values.config.storage.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: validator1-pvc
+          {{- else if eq .Values.config.storage.type "local" }}
           emptyDir:
-            sizeLimit: "2Gi"
-
- 
+            sizeLimit: {{ .Values.config.storage.size | quote }}
+          {{- else }}
+          {{- required "config.storage.type must be either pvc or local" "" }}
+          {{- end }}
+---
+{{- if eq .Values.config.storage.type "pvc" }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name:  validator1-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.config.storage.class }}
+  storageClassName: {{ .Values.config.storage.class | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.config.storage.size | quote }}
+{{- end }}
