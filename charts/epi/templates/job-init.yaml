@@ -26,15 +26,23 @@ spec:
       {{- end }}
       # Use the init ServiceAccount which has permissions to write to configMap
       serviceAccountName: {{ include "epi.fullname" . }}-init
+      {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
       initContainers:
       - name: init-epi
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+        {{- with .Values.securityContext }}
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command:
           - sh
           - -c
@@ -94,6 +102,7 @@ spec:
       containers:
       - name: write-configmap
         image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         command:
           - sh
           - -c

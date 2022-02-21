@@ -45,7 +45,7 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-# -- Security Context for the container.
+# -- Security Context for the application container.
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
 securityContext: {}
   # capabilities:

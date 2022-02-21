@@ -39,6 +39,7 @@ spec:
       initContainers:
       - name: init
         image: busybox@sha256:e39d9c8ac4963d0b00a5af08678757b44c35ea8eb6be0cdfbeb1282e7f7e6003 # 1.35.0 for linux/amd64
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         command:
           - sh
           - -c
