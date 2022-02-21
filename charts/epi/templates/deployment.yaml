@@ -20,8 +20,8 @@ spec:
   template:
     metadata:
       # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
-      annotations:
       {{- with .Values.podAnnotations }}
+      annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -32,8 +32,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "epi.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
       - name: init
         image: busybox@sha256:e39d9c8ac4963d0b00a5af08678757b44c35ea8eb6be0cdfbeb1282e7f7e6003 # 1.35.0 for linux/amd64
@@ -68,24 +70,28 @@ spec:
             mountPath: /container-shared-data
       containers:
       - name: epi
+        {{- with .Values.securityContext }}
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         ports:
           - name: http
             containerPort: 8080
             protocol: TCP
-        # livenessProbe:
-        #   httpGet:
-        #     path: /check
-        #     port: http
-        # readinessProbe:
-        #   httpGet:
-        #     path: /check
-        #     port: http
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.resources }}
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         command:
           - sh
           - -c
