@@ -96,13 +96,11 @@ spec:
         command:
           - sh
           - -c
-          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
           - echo "=======> Copying SeedsBackup from /container-shared-data/seedsBackup to /ePI-workspace/apihub-root/seedsBackup ...";
             cp /container-shared-data/seedsBackup /ePI-workspace/apihub-root/seedsBackup;
-            echo "=======> Listing directory /ePI-workspace/apihub-root ...";
-            cd $TARGET_FOLDER_NAME; 
-            echo "=======> Starting application ...";
-            bash startup-script.sh; 
+            cd /ePI-workspace; 
+            echo "=======> Starting server only - do not run build as apps are already built here...";
+            npm run server;
         volumeMounts:
           # Do not mount epi-seeds-volume anymore with subPath as that value won't be updated if ConfigMap has changed!
           # Also we cannot mount it without subPath as this would overwrite the whole folder with an empty folder.

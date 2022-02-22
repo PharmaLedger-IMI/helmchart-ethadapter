@@ -46,23 +46,34 @@ spec:
         command:
           - sh
           - -c
-          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
-          - cd $TARGET_FOLDER_NAME; 
-            echo "=======> Starting application in background process ...";
-            (bash startup-script.sh &); 
-            testfile=/ePI-workspace/apihub-root/seedsBackup; 
-            destination_folder=/container-shared-data;
-            until [ -s $testfile ]; 
-              do echo "=======> File $testfile is empty. Waiting to become generated. This can take a few minutes."; 
-              sleep 5; 
-            done; 
-            echo "=======> File $testfile was found.";
-            echo "=======> Copying to $destination_folder ..."; 
-            cp $testfile $destination_folder; 
-            echo "=======> Listing file in directory $destination_folder ..."; 
-            ls -las $testfile; 
+          # 1. Check if build process needs to be done
+          # 2. If yes: Start server in background, run build, then create markerfile and copy seedBackup to shared folder with main container
+          - cd /ePI-workspace; 
+            if [ ! -f /ePI-workspace/apihub-root/external-volume/domains/$IMAGE_TAG ]; 
+            then 
+              echo "=======> Not build yet!"; 
+              echo "=======> Starting application in background process ..."; 
+              (npm run server &); 
+              echo "=======> Sleeping for 10s ..."; 
+              sleep 10s; 
+              echo "=======> Starting build process ..."; 
+              npm run build-all; 
+              rc=$?; 
+              echo "=======> Build process done - rc=$rc"; 
+              if [ $rc -eq 0 ]; then 
+                echo "=======> Writing marker file that build process was successfully for version $IMAGE_TAG ..."; 
+                touch /ePI-workspace/apihub-root/external-volume/domains/$IMAGE_TAG; 
+                echo "=======> Copying seedsBackup to container-shared-data ..."; 
+                cp /ePI-workspace/apihub-root/seedsBackup /container-shared-data; 
+              fi 
+            else 
+              echo "=======> Already built for version=$IMAGE_TAG"; 
+            fi; 
             echo "=======> Exiting ..."; 
-            exit 0;
+            exit 0; 
+        env:
+          - name: IMAGE_TAG
+            value: "{{ .Values.image.tag | default .Chart.AppVersion }}"
         volumeMounts:
           - name: epi-external-volume
             mountPath: /ePI-workspace/apihub-root/external-volume
@@ -106,9 +117,14 @@ spec:
         command:
           - sh
           - -c
-          - echo "=======> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ...";
-            testfile=/container-shared-data/seedsBackup; 
-            kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=$testfile --dry-run=client -o yaml | kubectl apply -f -;
+          # If seedsBackup file exists, apply Kubernetes ConfigMap from it.
+          - if [ -f /container-shared-data/seedsBackup ]; 
+            then 
+              echo "=======> Writing or updating ConfigMap {{ include "epi.configMapSeedsBackupName" . }} ..." ;
+              kubectl create configmap {{ include "epi.configMapSeedsBackupName" . }} --from-file=seedsBackup=/container-shared-data/seedsBackup --dry-run=client -o yaml | kubectl apply -f -; 
+            else 
+              echo "=======> SeedsBackup file not present! Kubernetes ConfigMap was not created or updated!"; 
+            fi; 
         volumeMounts:
           - name: container-shared-data
             mountPath: /container-shared-data
