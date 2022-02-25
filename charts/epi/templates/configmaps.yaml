@@ -1,0 +1,11 @@
+{{- /*
+Create Configmaps from templates
+*/}}
+
+{{- include "epi.configmap-bdns" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-config" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-domains" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-environment" (list $ . "" (dict)) }}

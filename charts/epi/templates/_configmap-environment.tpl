@@ -1,7 +1,20 @@
+{{- /*
+Template for Configmap. Arguments to be passed are $ . suffix and an dictionary for annotations used for defining helm hooks.
+See https://blog.flant.com/advanced-helm-templating/
+*/}}
+{{- define "epi.configmap-environment" -}}
+{{- $ := index . 0 }}
+{{- $suffix := index . 2 }}
+{{- $annotations := index . 3 }}
+{{- with index . 1 }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "epi.fullname" . }}-environment
+  name: {{ include "epi.fullname" . }}-environment{{ $suffix | default "" }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   labels:
     {{- include "epi.labels" . | nindent 4 }}
 data:
@@ -71,3 +84,6 @@ data:
       "allowPinLogin": false,
       "legenda for properties": " vault:(server, browser) agent:(mobile,  browser)  system:(iOS, Android, any) browser:(Chrome, Firefox, any) mode:(development, release) sw:(true, false) pwa:(true, false)"
     }
+
+{{- end }}
+{{- end }}
