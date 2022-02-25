@@ -18,6 +18,7 @@ rules:
   resources:
   - configmaps
   verbs:
+  - get
   - delete
 # We cannot restrict create verb to a resourceName - See https://github.com/kubernetes/kubernetes/issues/80295
 - apiGroups:
@@ -88,7 +89,7 @@ metadata:
   annotations:
     "description": "Cleanup Job running after deletion of helm managed resource"
     "helm.sh/hook": post-delete
-    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "0"
 spec:
   backoffLimit: 1
@@ -115,17 +116,23 @@ spec:
         args:
           - |
             echo "Cleanup Job started"
-            {{- if eq (toString .Values.persistence.deletePvcOnUninstall) "true" }}
-            echo "Deleting PersistentVolumeClaim {{ include "epi.fullname" . }} ..."
-            kubectl delete pvc {{ include "epi.fullname" . }} --ignore-not-found=true
-            {{- end }}
 
+            echo "1. Deleting Init Job ..."
+            kubectl delete job {{ include "epi.fullname" . }}-init --ignore-not-found=true
+
+            echo "2. Backing up Configmap {{ include "epi.configMapSeedsBackupName" . }} to $backupname ..."
             backupname="{{ include "epi.configMapSeedsBackupName" . }}-${IMAGE_TAG}-final-backup-$(date +%s)"
-            echo "Backing up Configmap {{ include "epi.configMapSeedsBackupName" . }} to $backupname ..."
             kubectl patch cm {{ include "epi.configMapSeedsBackupName" . }} -p "{\"metadata\":{ \"name\":\"$backupname\"}}" --dry-run=client -o yaml | kubectl apply -f -
 
-            echo "Deleting Configmap {{ include "epi.configMapSeedsBackupName" . }} ..."
+            echo "3. Deleting Configmap {{ include "epi.configMapSeedsBackupName" . }} ..."
             kubectl delete cm {{ include "epi.configMapSeedsBackupName" . }} --ignore-not-found=true
+
+            {{- if eq (toString .Values.persistence.deletePvcOnUninstall) "true" }}
+            echo "4. Deleting PersistentVolumeClaim {{ include "epi.fullname" . }} ..."
+            kubectl delete pvc {{ include "epi.fullname" . }} --ignore-not-found=true
+            {{- else }}
+            echo "4. SKIPPED: Deleting PersistentVolumeClaim {{ include "epi.fullname" . }}."
+            {{- end }}
         env:
           - name: IMAGE_TAG
             value: "{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Values.image.tag | default .Chart.AppVersion }}"
