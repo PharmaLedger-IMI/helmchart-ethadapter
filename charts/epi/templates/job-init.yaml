@@ -163,7 +163,7 @@ spec:
             exit 0
         env:
           - name: IMAGE_TAG
-            value: "{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Values.image.tag | default .Chart.AppVersion }}"
+            value: "{{ .Values.image.tag | default .Chart.AppVersion }}"
         volumeMounts:
           # As of Feb-2023 we do NOT mount seedsBackup to its desired destination /ePI-workspace/apihub-root/seedsBackup
           # as the startup build process will write to that even if there are no changes.
@@ -239,7 +239,7 @@ spec:
             fi
         env:
           - name: IMAGE_TAG
-            value: "{{ .Values.image.tag | default .Chart.AppVersion }}-{{ .Values.image.tag | default .Chart.AppVersion }}"
+            value: "{{ .Values.image.tag | default .Chart.AppVersion }}"
         volumeMounts:
           - name: container-shared-data
             mountPath: /container-shared-data
