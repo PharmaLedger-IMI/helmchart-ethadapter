@@ -25,9 +25,12 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
   - Significant changes! Please uninstall old versions first! Upgrade from 0.1.x not tested and not guaranteed!
   - Uses Helm hooks for Init and Cleanup
   - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
-  - Value `config.ethadapterUrl` has changed to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
+  - Value `config.ethadapterUrl` has changed from `https://ethadapter.my-company.com:3000` to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
   - Value `persistence.storageClassName` has changed from `gp2` to empty string `` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
- 
+  - Readiness probe implemented
+  - Configuration options for PersistentVolumeClaim
+  - Configuration for running as non-root user
+  - Minor optimizations at Kubernetes resources, e.g. set sizeLimit of temporary shared volume, explictly set readOnly flags at volumeMounts.
 
 ## Helm Lifecycle and Kubernetes Resources Lifetime
 
