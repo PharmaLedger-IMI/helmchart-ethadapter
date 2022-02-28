@@ -28,7 +28,7 @@ rules:
   - ""
   resourceNames:
   - {{ include "epi.configMapSeedsBackupName" . | quote }}
-  - "{{ include "epi.fullname" . }}-indicator"
+  - "{{ include "epi.fullname" . }}-build-info"
   resources:
   - configmaps
   verbs:
@@ -112,7 +112,7 @@ spec:
       {{- end }}
       restartPolicy: Never
       initContainers:
-      - name: indicator-check
+      - name: build-necessity-check
         image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
         imagePullPolicy: {{ .Values.kubectl.image.pullPolicy | default "IfNotPresent" }}
         command:
@@ -122,7 +122,7 @@ spec:
           - |
             # Exit on error
             set -e
-            last_built_image=$(kubectl get cm --ignore-not-found {{ include "epi.fullname" . }}-indicator -o jsonpath='{.data.lastBuiltImage}')
+            last_built_image=$(kubectl get cm --ignore-not-found {{ include "epi.fullname" . }}-build-info -o jsonpath='{.data.lastBuiltImage}')
             if [ "$last_built_image" != "$FULL_IMAGE" ]
             then 
               echo "=======> Not build yet for image=$FULL_IMAGE!"
@@ -259,7 +259,7 @@ spec:
           - |
             # Exit on error
             set -e
-            # If seedsBackup file exists, apply Kubernetes ConfigMap from it and create indicator file.
+            # If seedsBackup file exists, apply Kubernetes ConfigMap.
             if [ -f /container-shared-data/seedsBackup ]
             then 
               backupname="{{ include "epi.configMapSeedsBackupName" . }}-${IMAGE_TAG}-$(date +%s)"

@@ -13,9 +13,9 @@ Create Configmaps from templates
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "epi.fullname" . }}-indicator
+  name: {{ include "epi.fullname" . }}-build-info
   annotations:
-    "description": "Indicator which image was successfully built"
+    "description": "Info about which image has been successfully built latest"
   labels:
     {{- include "epi.labels" . | nindent 4 }}
 data:

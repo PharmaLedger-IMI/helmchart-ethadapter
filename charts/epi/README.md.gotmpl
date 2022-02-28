@@ -52,7 +52,7 @@ sequenceDiagram
   Note over PIN:RoleBinding Init
   note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
   Note over PUP,U:Deployment
-  Note over PUP,U:ConfigMap Indicator with last succeeded build process
+  Note over PUP,U:ConfigMap Build-Info with last succeeded build process
   Note over PUP,U:Further Configmaps
   Note over PUP,U:Service
   Note over PUP,U:Ingress
@@ -86,13 +86,13 @@ A(Helm pre-install/pre-upgrade hook) -->|deploys| B(Init Job)
 B -->|schedules| C(Init Pod)
 ```
 
-2. The first Init Container runs `kubectl` command to check existance of ConfigMap `Indicator` which contains information about latest successful build process.
-   1. If ConfigMap `Indicator` does not exist or latest build process does not match current epi application container image, then a *signal* file will be written to a shared volume between containers.
+2. The first Init Container runs `kubectl` command to check existance of ConfigMap `build-info` which contains information about latest successful build process.
+   1. If ConfigMap `build-info` does not exist or latest build process does not match current epi application container image, then a *signal* file will be written to a shared volume between containers.
    2. Otherwise the build process has already been executed for current application container image.
 
 ```mermaid
 flowchart LR
-D(Init Container<br/>Kubectl) --> E{ConfigMap Indicator<br/>exists and<br/>matches current<br/>container image?}
+D(Init Container<br/>Kubectl) --> E{ConfigMap build-info<br/>exists and<br/>matches current<br/>container image?}
 E -->|not exists| F[Write signal file to shared data volume]
 F --> G[Exit Init Container<br/>Kubectl]
 E -->|exists| G
@@ -102,17 +102,17 @@ E -->|exists| G
 4. If it does not exists, then no build process shall run and the container exists.
 5. If the *Signal* file exists, then
    1. Starts the apihub server (`npm run server`), waits for a short period of time and then starts the build process (`npm run build-all`).
-   2. After build process, it writes an *indicator file* to persistent storage and hands-over the SeedsBackup file on a shared temporary volume between init and main container.
+   2. After build process, it writes the SeedsBackup file on a shared temporary volume between init and main container.
 
 ```mermaid
 flowchart LR
-D(Init Container<br/>application) --> E{Indicator file exists?}
-E -->|not exists| F[start apihub server]
+D(Init Container<br/>application) --> E{Signal file exists?}
+E -->|yes, exists| F[start apihub server]
 F --> G[sleep short time]
 G --> H[build process]
 H --> I[write SeedsBackup file to shared data with main container]
 I --> J
-E -->|exists| J[Exit Init Container<br/>application]
+E -->|no, does not exist| J[Exit Init Container<br/>application]
 ```
 
 6. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
