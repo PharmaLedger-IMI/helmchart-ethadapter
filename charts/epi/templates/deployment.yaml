@@ -1,6 +1,11 @@
 #
 # The Deployment of the epi application.
-# An InitContainer blocks execution until the seedBackup file exists in ConfigMap and is filled with data.
+# Note:
+# 1. As of Feb-23 2022 the build process needs to run on every container startup as some files are added to ephemeral container disk space.
+#    Without these files, the wallet application won't startup.
+#    That is also the reason why the container cannot be made readonly currently.
+# 2. As of Feb-23 2022 the seedBackup file is injected into the container but not to its desired destination 
+#    as the build process is overwriting it.
 #
 apiVersion: apps/v1
 kind: Deployment
@@ -36,39 +41,6 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      initContainers:
-      - name: init
-        image: busybox@sha256:e39d9c8ac4963d0b00a5af08678757b44c35ea8eb6be0cdfbeb1282e7f7e6003 # 1.35.0 for linux/amd64
-        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
-        command:
-          - sh
-          - -c
-          # Wait until seedsBackup file is not empty which means it was initially created by the Kubernetes Job and its value has been populated into the ConfigMap
-          - testfile=/epi-seeds-volume/seedsBackup; 
-            destination_folder=/container-shared-data;
-            until [ -s $testfile ]; 
-              do echo "=======> File $testfile is empty. Waiting to become populated. This can take a few minutes. See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically"; 
-              sleep 5; 
-            done; 
-            echo "=======> File $testfile was populated.";
-            echo "=======> Copying to $destination_folder ..."; 
-            cp $testfile $destination_folder; 
-            echo "=======> Listing file in directory $destination_folder ..."; 
-            ls -las $testfile; 
-            echo "=======> Exiting ..."; 
-            exit 0;
-        volumeMounts:
-            # Mount seedsBackup file from ConfigMap.
-            # Important: Note that we DO not use 'subPath: seedsBackup' here 
-            # as Secret or ConfigMap values mounted with subPath will not be updated onto a file system!!!
-            # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
-            # Therefore we mount a whole folder
-            #subPath: seedsBackup
-          - name: epi-seeds-volume
-            mountPath: /epi-seeds-volume
-            # We mount a temporary volume in order to hand over data from init to main container
-          - name: container-shared-data
-            mountPath: /container-shared-data
       containers:
       - name: epi
         {{- with .Values.securityContext }}
@@ -96,55 +68,87 @@ spec:
         command:
           - sh
           - -c
-          # Start application in background process and check regularly for existence of seedsBackup backup. Exit on existence of file!
-          - echo "=======> Copying SeedsBackup from /container-shared-data/seedsBackup to /ePI-workspace/apihub-root/seedsBackup ...";
-            cp /container-shared-data/seedsBackup /ePI-workspace/apihub-root/seedsBackup;
-            echo "=======> Listing directory /ePI-workspace/apihub-root ...";
-            cd $TARGET_FOLDER_NAME; 
-            echo "=======> Starting application ...";
-            bash startup-script.sh; 
+        args:
+            #
+            # NOT WORKING: As of Feb-23 2022 the build process must run on every startup as
+            # it also write files into ephemeral container disk space, e.g. /ePI-workspace/apihub-root/demiurge-wallet/loader/environment.js
+            #
+            # echo "=======> Starting server only - do not run build as apps are already built here..."
+            # npm run server
+            #
+            # Additionally mounting seedsBackup not working (Feb-23 2022) as mounted files are readonly 
+            # and the build process overwrites it even if no changes occur.
+            #
+          - |
+            cd /ePI-workspace
+            echo "=======> Copying seedsBackupOnStartup to seedsBackup ..."
+            cp apihub-root/seedsBackupOnStartup apihub-root/seedsBackup
+            echo "=======> Starting application in background process ..."
+            npm run server &
+            server_pid=$!
+            echo "=======> Application running in background with PID=$server_pid"
+            echo "=======> Sleeping for {{ .Values.config.sleepTime }} ..."
+            sleep {{ .Values.config.sleepTime }}
+            echo "=======> Starting build process ..."
+            npm run build-all
+            rc=$?
+            echo "=======> Build process done - rc=$rc"
+            if [ $rc -eq 0 ]
+            then 
+              echo "=======> Build process successful - Writing file that application is ready ..."
+              touch /ePI-workspace/apihub-root/ready
+              tail -f /dev/null
+            fi
         volumeMounts:
-          # Do not mount epi-seeds-volume anymore with subPath as that value won't be updated if ConfigMap has changed!
-          # Also we cannot mount it without subPath as this would overwrite the whole folder with an empty folder.
-          # That's the reason why we need to copy the seedsBackup to its destination!
-          # - name: epi-seeds-volume
-          #   mountPath: /ePI-workspace/apihub-root
-          #   subPath: seedsBackup
+          # As of Feb-2023 we do NOT mount seedsBackup to its desired destination /ePI-workspace/apihub-root/seedsBackup
+          # as the startup build process will write to that even if there are no changes.
+          # Thus, we mount it to different location and copy it to desired location where the file is writeable then.
+          - name: epi-seeds-volume
+            mountPath: /ePI-workspace/apihub-root/seedsBackupOnStartup
+            subPath: seedsBackup
+            readOnly: true
           - name: epi-external-volume
             mountPath: /ePI-workspace/apihub-root/external-volume
           - name: epi-config-volume
             mountPath: /ePI-workspace/apihub-root/external-volume/config/apihub.json
             subPath: apihub.json
+            readOnly: true
           - name: epi-bdns-config-volume
             mountPath: /ePI-workspace/apihub-root/external-volume/config/bdns.hosts
             subPath: bdns.hosts
+            readOnly: true
           - name: epi-config-volume
             mountPath: /ePI-workspace/env.json
             subPath: env.json
+            readOnly: true
           - name: epi-domains-volume
             mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.domain must be set" .Values.config.domain }}.json
             subPath: {{ required "config.domain must be set" .Values.config.domain }}.json
+            readOnly: true
           - name: epi-domains-volume
             mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.subDomain must be set" .Values.config.subDomain }}.json
             subPath: {{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+            readOnly: true
           - name: epi-domains-volume
             mountPath: /ePI-workspace/apihub-root/external-volume/config/domains/{{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
             subPath: {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+            readOnly: true
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/demiurge-wallet/loader/environment.js
             subPath: demiurge-environment.js
+            readOnly: true
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/dsu-explorer/loader/environment.js
             subPath: dsu-explorer-environment.js
+            readOnly: true
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/dsu-fabric-wallet/loader/environment.js
             subPath: dsu-fabric-environment.js
+            readOnly: true
           - name: epi-env-volume
             mountPath: /ePI-workspace/trust-loader-config/leaflet-wallet/loader/environment.js
             subPath: leaflet-environment.js
-            # We mount a temporary volume in order to hand over data from init to main container
-          - name: container-shared-data
-            mountPath: /container-shared-data
+            readOnly: true
       restartPolicy: Always
       volumes:
         - name: epi-seeds-volume
@@ -165,10 +169,6 @@ spec:
         - name: epi-external-volume
           persistentVolumeClaim:
             claimName:  {{ include "epi.fullname" . }}
-          # Extra volume for passing data (seedsBackup) from initContainer to main container
-          # aka sharing data, see https://www.stratoscale.com/blog/kubernetes/kubernetes-how-to-share-disk-storage-between-containers-in-a-pod/
-        - name: container-shared-data
-          emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

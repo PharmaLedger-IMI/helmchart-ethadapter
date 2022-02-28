@@ -19,24 +19,123 @@
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
-## How Seeds backup will be put into ConfigMap
+## Changelog
 
-Every time, on startup the application checks the existence of the so called SeedsBackup.
+- From 0.1.x to 0.2.x - Technical release: Significant changes! Please uninstall old versions first! Upgrade from 0.1.x not tested and not guaranteed!
+  - Uses Helm hooks for Init and Cleanup
+  - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
+  - Readiness probe implemented. Application container is considered as *ready* after build process has been finished.
+  - Value `config.ethadapterUrl` has changed from `https://ethadapter.my-company.com:3000` to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
+  - Value `persistence.storageClassName` has changed from `gp2` to empty string `""` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
+  - Configurable sleep time between start of apihub and build process (`config.sleepTime`).
+  - Configuration options for PersistentVolumeClaim
+  - Configuration has been prepared for running as non-root user (commented out yet, see [values.yaml `podSecurityContext` and `securityContext`](./values.yaml)).
+  - Minor optimizations at Kubernetes resources, e.g. set sizeLimit of temporary shared volume, explictly set readOnly flags at volumeMounts.
 
-1. If it does not exists - what's the case on first initial startup, also see output from logfile = `File ./apihub-root/seedsBackup does not exist, hopefully you are doing an initial build by generating fresh seeds` - then the apps will be generated, but onto the brick storage and their addresses put into the seedsbackup file.
-2. Now (in a manual deployment), the content of seedsBackup needed to be put into a Kubernetes Configmap and the pod to be restarted manually.
-3. On the next start, the application detects the existing seedsBackup and skips app generation process.
+## Helm Lifecycle and Kubernetes Resources Lifetime
 
-This helm chart automates the manual steps.
+This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to install, upgrade and manage the application and its resources.
 
-1. The application itself is managed by a Kubernetes deployment which specifies a Pod containing an initContainer and a container for epi application.
-The initContainer blocks starting the epi application container until the ConfigMap contains a SeedBackup file.
-2. A Kubernetes Job (which runs only once), defines a Pod containing an initContainer and a container. 
-The initContainer runs the epi application which generates apps and seedsBackup and stops after creation of seedsbackup. 
-Then the "main" container starts which writes SeedsBackup into a Kubernetes ConfigMap (where the initContainer of the deployment is waiting for).
-3. Now the Kubernetes Job ends and the initContainer of the deployment detects the seedsBackup file and exit which starts the epi application in the container.
+```mermaid
+sequenceDiagram
+  participant PIN as pre-install
+  participant PUP as pre-upgrade
+  participant I as install
+  participant U as uninstall
+  participant PUN as post-uninstall
+  Note over PIN,PUN: PersistentVolumeClaim
+  Note over PIN,PUN: ConfigMap SeedsBackup
+  Note over PIN:Init Job
+  Note over PIN:ConfigMaps Init
+  Note over PIN:ServiceAccount Init
+  Note over PIN:Role Init
+  Note over PIN:RoleBinding Init
+  note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
+  Note over PUP,U:Deployment
+  Note over PUP,U:ConfigMap build-info
+  Note over PUP,U:Configmaps for application
+  Note over PUP,U:Service
+  Note over PUP,U:Ingress
+  Note over PUP,U:ServiceAccount
+  Note over PUP:Init Job<br/>and more<br/>(see pre-install)
+  Note over PUN:Cleanup Job
+  Note over PUN:ServiceAccount Cleanup
+  Note over PUN:Role Cleanup
+  Note over PUN:RoleBinding Cleanup
+  note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim (optional)<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
+```
 
-Herefore 
+## Init Job
+
+The Init Job is an important step and will be executed on helm [hooks](https://helm.sh/docs/topics/charts_hooks/) `pre-install` and `pre-upgrade`. 
+Its pod consists of three containers, two init containers and one main container.
+
+```mermaid
+flowchart LR
+A(Init Container 1:<br/>Check necessity for build process) -->B(Init Container 2:<br/>Run build process if necessary)
+B --> C(Main Container:<br/>Write/Update ConfigMap Seedsbackup)
+```
+
+### Init Job Details
+
+1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init* which schedules a pod consisting of two Init Containers and one Main Container.
+
+```mermaid
+flowchart LR
+A(Helm pre-install/pre-upgrade hook) -->|deploys| B(Init Job)
+B -->|schedules| C(Init Pod)
+```
+
+2. The first Init Container runs `kubectl` command to check existance of ConfigMap `build-info` which contains information about latest successful build process.
+   1. If ConfigMap `build-info` does not exist or latest build process does not match current epi application container image, then a *signal* file will be written to a shared volume between containers.
+   2. Otherwise the build process has already been executed for current application container image.
+
+```mermaid
+flowchart LR
+D(Init Container<br/>Kubectl) --> E{ConfigMap build-info<br/>exists and<br/>matches current<br/>container image?}
+E -->|not exists| F[Write signal file to shared data volume]
+F --> G[Exit Init Container<br/>Kubectl]
+E -->|exists| G
+```
+
+3. The second Init Container uses the container image of the epi application and checks existance of *Signal* file from first Init Container.
+4. If it does not exists, then no build process shall run and the container exists.
+5. If the *Signal* file exists, then
+   1. Starts the apihub server (`npm run server`), waits for a short period of time and then starts the build process (`npm run build-all`).
+   2. After build process, it writes the SeedsBackup file on a shared temporary volume between init and main container.
+
+```mermaid
+flowchart LR
+D(Init Container<br/>application) --> E{Signal file exists?}
+E -->|yes, exists| F[start apihub server]
+F --> G[sleep short time]
+G --> H[build process]
+H --> I[write SeedsBackup file to shared data with main container]
+I --> J
+E -->|no, does not exist| J[Exit Init Container<br/>application]
+```
+
+6. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
+
+```mermaid
+flowchart LR
+L(Main Container) --> M{SeedsBackup file exists?}
+M -->|exists| N[Create ConfigMap SeedsBackup for current Image]
+N --> O[Update ConfigMap SeedsBackup]
+O --> P
+M -->|not exists| P[Exit Pod]
+```
+
+After completion of the *Init Job* the application container will be deployed/restarted with the current *ConfigMap SeedsBackup*.
+
+## Cleanup Job
+
+On deletion/uninstall of the helm chart a Kubernetes `cleanup` will be deployed in order to delete unmanaged helm resources created by helm hooks at `pre-install`.
+These resources are:
+
+1. Init Job - The Init Job was created on pre-install/pre-upgrade and will remain after its execution.
+2. PersistentVolumeClaim - In case the PersistentVolumeClaim shall not be deleted on deletion of the helm release, set `persistence.deletePvcOnUninstall` to `false`.
+3. ConfigMap SeedsBackup - Prior to deletion of the ConfigMap, a backup ConfigMap will be created with naming schema `{HELM_RELEASE_NAME}-seedsbackup-{IMAGE_TAG}-final-backup-{EPOCH_IN_SECONDS}`, e.g. `epi-seedsbackup-poc.1.6-final-backup-1646063552`
 
 ### Quick install with internal service of type ClusterIP
 

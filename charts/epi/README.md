@@ -1,6 +1,6 @@
 # epi
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger epi (electronic product information) application
 
@@ -19,24 +19,123 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
-## How Seeds backup will be put into ConfigMap
+## Changelog
 
-Every time, on startup the application checks the existence of the so called SeedsBackup.
+- From 0.1.x to 0.2.x - Technical release: Significant changes! Please uninstall old versions first! Upgrade from 0.1.x not tested and not guaranteed!
+  - Uses Helm hooks for Init and Cleanup
+  - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
+  - Readiness probe implemented. Application container is considered as *ready* after build process has been finished.
+  - Value `config.ethadapterUrl` has changed from `https://ethadapter.my-company.com:3000` to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
+  - Value `persistence.storageClassName` has changed from `gp2` to empty string `""` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
+  - Configurable sleep time between start of apihub and build process (`config.sleepTime`).
+  - Configuration options for PersistentVolumeClaim
+  - Configuration has been prepared for running as non-root user (commented out yet, see [values.yaml `podSecurityContext` and `securityContext`](./values.yaml)).
+  - Minor optimizations at Kubernetes resources, e.g. set sizeLimit of temporary shared volume, explictly set readOnly flags at volumeMounts.
 
-1. If it does not exists - what's the case on first initial startup, also see output from logfile = `File ./apihub-root/seedsBackup does not exist, hopefully you are doing an initial build by generating fresh seeds` - then the apps will be generated, but onto the brick storage and their addresses put into the seedsbackup file.
-2. Now (in a manual deployment), the content of seedsBackup needed to be put into a Kubernetes Configmap and the pod to be restarted manually.
-3. On the next start, the application detects the existing seedsBackup and skips app generation process.
+## Helm Lifecycle and Kubernetes Resources Lifetime
 
-This helm chart automates the manual steps.
+This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to install, upgrade and manage the application and its resources.
 
-1. The application itself is managed by a Kubernetes deployment which specifies a Pod containing an initContainer and a container for epi application.
-The initContainer blocks starting the epi application container until the ConfigMap contains a SeedBackup file.
-2. A Kubernetes Job (which runs only once), defines a Pod containing an initContainer and a container.
-The initContainer runs the epi application which generates apps and seedsBackup and stops after creation of seedsbackup.
-Then the "main" container starts which writes SeedsBackup into a Kubernetes ConfigMap (where the initContainer of the deployment is waiting for).
-3. Now the Kubernetes Job ends and the initContainer of the deployment detects the seedsBackup file and exit which starts the epi application in the container.
+```mermaid
+sequenceDiagram
+  participant PIN as pre-install
+  participant PUP as pre-upgrade
+  participant I as install
+  participant U as uninstall
+  participant PUN as post-uninstall
+  Note over PIN,PUN: PersistentVolumeClaim
+  Note over PIN,PUN: ConfigMap SeedsBackup
+  Note over PIN:Init Job
+  Note over PIN:ConfigMaps Init
+  Note over PIN:ServiceAccount Init
+  Note over PIN:Role Init
+  Note over PIN:RoleBinding Init
+  note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
+  Note over PUP,U:Deployment
+  Note over PUP,U:ConfigMap build-info
+  Note over PUP,U:Configmaps for application
+  Note over PUP,U:Service
+  Note over PUP,U:Ingress
+  Note over PUP,U:ServiceAccount
+  Note over PUP:Init Job<br/>and more<br/>(see pre-install)
+  Note over PUN:Cleanup Job
+  Note over PUN:ServiceAccount Cleanup
+  Note over PUN:Role Cleanup
+  Note over PUN:RoleBinding Cleanup
+  note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim (optional)<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
+```
 
-Herefore
+## Init Job
+
+The Init Job is an important step and will be executed on helm [hooks](https://helm.sh/docs/topics/charts_hooks/) `pre-install` and `pre-upgrade`.
+Its pod consists of three containers, two init containers and one main container.
+
+```mermaid
+flowchart LR
+A(Init Container 1:<br/>Check necessity for build process) -->B(Init Container 2:<br/>Run build process if necessary)
+B --> C(Main Container:<br/>Write/Update ConfigMap Seedsbackup)
+```
+
+### Init Job Details
+
+1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init* which schedules a pod consisting of two Init Containers and one Main Container.
+
+```mermaid
+flowchart LR
+A(Helm pre-install/pre-upgrade hook) -->|deploys| B(Init Job)
+B -->|schedules| C(Init Pod)
+```
+
+2. The first Init Container runs `kubectl` command to check existance of ConfigMap `build-info` which contains information about latest successful build process.
+   1. If ConfigMap `build-info` does not exist or latest build process does not match current epi application container image, then a *signal* file will be written to a shared volume between containers.
+   2. Otherwise the build process has already been executed for current application container image.
+
+```mermaid
+flowchart LR
+D(Init Container<br/>Kubectl) --> E{ConfigMap build-info<br/>exists and<br/>matches current<br/>container image?}
+E -->|not exists| F[Write signal file to shared data volume]
+F --> G[Exit Init Container<br/>Kubectl]
+E -->|exists| G
+```
+
+3. The second Init Container uses the container image of the epi application and checks existance of *Signal* file from first Init Container.
+4. If it does not exists, then no build process shall run and the container exists.
+5. If the *Signal* file exists, then
+   1. Starts the apihub server (`npm run server`), waits for a short period of time and then starts the build process (`npm run build-all`).
+   2. After build process, it writes the SeedsBackup file on a shared temporary volume between init and main container.
+
+```mermaid
+flowchart LR
+D(Init Container<br/>application) --> E{Signal file exists?}
+E -->|yes, exists| F[start apihub server]
+F --> G[sleep short time]
+G --> H[build process]
+H --> I[write SeedsBackup file to shared data with main container]
+I --> J
+E -->|no, does not exist| J[Exit Init Container<br/>application]
+```
+
+6. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
+
+```mermaid
+flowchart LR
+L(Main Container) --> M{SeedsBackup file exists?}
+M -->|exists| N[Create ConfigMap SeedsBackup for current Image]
+N --> O[Update ConfigMap SeedsBackup]
+O --> P
+M -->|not exists| P[Exit Pod]
+```
+
+After completion of the *Init Job* the application container will be deployed/restarted with the current *ConfigMap SeedsBackup*.
+
+## Cleanup Job
+
+On deletion/uninstall of the helm chart a Kubernetes `cleanup` will be deployed in order to delete unmanaged helm resources created by helm hooks at `pre-install`.
+These resources are:
+
+1. Init Job - The Init Job was created on pre-install/pre-upgrade and will remain after its execution.
+2. PersistentVolumeClaim - In case the PersistentVolumeClaim shall not be deleted on deletion of the helm release, set `persistence.deletePvcOnUninstall` to `false`.
+3. ConfigMap SeedsBackup - Prior to deletion of the ConfigMap, a backup ConfigMap will be created with naming schema `{HELM_RELEASE_NAME}-seedsbackup-{IMAGE_TAG}-final-backup-{EPOCH_IN_SECONDS}`, e.g. `epi-seedsbackup-poc.1.6-final-backup-1646063552`
 
 ### Quick install with internal service of type ClusterIP
 
@@ -61,7 +160,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 2. Install via helm to namespace `default`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --values my-config.yaml \
     ```
@@ -161,7 +260,7 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
@@ -172,7 +271,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
@@ -207,10 +306,10 @@ Tests can be found in [tests](./tests)
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity for scheduling a pod. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
-| config | object | `{"bdnsHosts":"{\n  \"epipoc\": {\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.my-company\": {\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.other\": {\n      \"brickStorages\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"anchoringServices\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"notifications\": [\n          \"https://epipoc.other-company.com\"\n      ]\n  },\n  \"vault.my-company\": {\n      \"replicas\": [],\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  }\n}","domain":"epipoc","ethadapterUrl":"https://ethadapter.my-company.com:3000","subDomain":"epipoc.my-company","vaultDomain":"vault.my-company"}` | Configuration. Will be put in a configmap. Required values: rpcAddress, smartContractAddress, smartContractAbi |
+| config | object | `{"bdnsHosts":"{\n  \"epipoc\": {\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.my-company\": {\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.other\": {\n      \"brickStorages\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"anchoringServices\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"notifications\": [\n          \"https://epipoc.other-company.com\"\n      ]\n  },\n  \"vault.my-company\": {\n      \"replicas\": [],\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  }\n}","domain":"epipoc","ethadapterUrl":"http://ethadapter.ethadapter:3000","sleepTime":"10s","subDomain":"epipoc.my-company","vaultDomain":"vault.my-company"}` | Configuration. Will be put in ConfigMaps. |
 | config.bdnsHosts | string | `"{\n  \"epipoc\": {\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.my-company\": {\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  },\n  \"epipoc.other\": {\n      \"brickStorages\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"anchoringServices\": [\n          \"https://epipoc.other-company.com\"\n      ],\n      \"notifications\": [\n          \"https://epipoc.other-company.com\"\n      ]\n  },\n  \"vault.my-company\": {\n      \"replicas\": [],\n      \"brickStorages\": [\n          \"$ORIGIN\"\n      ],\n      \"anchoringServices\": [\n          \"$ORIGIN\"\n      ],\n      \"notifications\": [\n          \"$ORIGIN\"\n      ]\n  }\n}"` | Centrally managed and provided BDNS Hosts Config |
 | config.domain | string | `"epipoc"` | The Domain, e.g. "epipoc" |
-| config.ethadapterUrl | string | `"https://ethadapter.my-company.com:3000"` | The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000" |
+| config.ethadapterUrl | string | `"http://ethadapter.ethadapter:3000"` | The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000" |
 | config.subDomain | string | `"epipoc.my-company"` | The Subdomain, should be domain.company, e.g. epipoc.my-company |
 | config.vaultDomain | string | `"vault.my-company"` | The Vault domain, should be vault.company, e.g. vault.my-company |
 | deploymentStrategy.type | string | `"Recreate"` |  |
@@ -226,20 +325,23 @@ Tests can be found in [tests](./tests)
 | ingress.hosts[0].paths[0].path | string | `"/"` | The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples) Note: For Ingress Controllers like AWS LB Controller see their specific documentation. |
 | ingress.hosts[0].paths[0].pathType | string | `"ImplementationSpecific"` | The type of path. This value is required since Kubernetes 1.18. For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/) |
 | ingress.tls | list | `[]` |  |
-| initJob.kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
-| initJob.kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image |
-| initJob.kubectlImage.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
+| kubectl | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"bitnami/kubectl","tag":"1.21.8"}}` | Settings for Container with kubectl installed used by Init and Cleanup Job |
+| kubectl.image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
+| kubectl.image.repository | string | `"bitnami/kubectl"` | The repository of the container image containing kubectl |
+| kubectl.image.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
 | livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":1}` | Liveness probe. See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
 | nameOverride | string | `""` | nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | nodeSelector | object | `{}` | Node Selectors in order to assign pods to certain nodes. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
-| persistence.size | string | `"20Gi"` |  |
-| persistence.storageClassName | string | `"gp2"` |  |
+| persistence | object | `{"accessModes":["ReadWriteOnce"],"deletePvcOnUninstall":true,"finalizers":["kubernetes.io/pvc-protection"],"size":"20Gi","storageClassName":""}` | Enable persistence using Persistent Volume Claims See [http://kubernetes.io/docs/user-guide/persistent-volumes/](http://kubernetes.io/docs/user-guide/persistent-volumes/) |
+| persistence.deletePvcOnUninstall | bool | `true` | Boolean flag whether to delete the persistent volume on uninstall or not. |
+| persistence.size | string | `"20Gi"` | Size of the volume |
+| persistence.storageClassName | string | `""` | Name of the storage class. If empty or not set then storage class will not be set - which means that the default storage class will be used. |
 | podAnnotations | object | `{}` | Annotations added to the pod |
-| podSecurityContext | object | `{}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) |
-| readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":1}` | Readiness probe. See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
+| podSecurityContext | object | `{}` | Security Context for the pod.  IMPORTANT: Take a look at values.yaml file for configuration for non-root user! See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) For running as root-user (which is not recommendedIf you run as root user (which is absolutely NOT recommended) then  |
+| readinessProbe | object | `{"exec":{"command":["cat","/ePI-workspace/apihub-root/ready"]},"failureThreshold":60,"initialDelaySeconds":30,"periodSeconds":5,"successThreshold":1}` | Readiness probe. See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for the container |
-| securityContext | object | `{}` | Security Context for the application container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
+| securityContext | object | `{}` | Security Context for the application container IMPORTANT: Take a look at values.yaml file for configuration for non-root user! See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)  For running as non-root with uid 1000, remove {} from next line and uncomment next lines! |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
 | service.port | int | `80` | Port where the service will be exposed |
 | service.type | string | `"ClusterIP"` | Either ClusterIP, NodePort or LoadBalancer. See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/) |

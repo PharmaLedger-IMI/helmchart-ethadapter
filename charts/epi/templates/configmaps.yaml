@@ -1,0 +1,22 @@
+{{- /*
+Create Configmaps from templates
+*/}}
+
+{{- include "epi.configmap-bdns" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-config" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-domains" (list $ . "" (dict)) }}
+---
+{{- include "epi.configmap-environment" (list $ . "" (dict)) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "epi.fullname" . }}-build-info
+  annotations:
+    "description": "Info about which image has been successfully built latest"
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+data:
+  lastBuiltImage: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

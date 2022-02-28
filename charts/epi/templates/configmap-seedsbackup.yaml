@@ -1,7 +1,20 @@
+{{- /*
+SeedsBackup ConfigMap will be created on pre-install and will remain for the whole lifetime of the helm installation!
+It will be deleted be job-cleanup.
+*/}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "epi.configMapSeedsBackupName" . }}
+  annotations:
+    "description": "Currently used Seedsbackup"
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "-1"
+    {{- /*
+    Skip deleting this resource when a helm operation (such as helm uninstall, helm upgrade or helm rollback) would result in its deletion.
+    */}}
+    "helm.sh/resource-policy": keep
   labels:
     {{- include "epi.labels" . | nindent 4 }}
 data:

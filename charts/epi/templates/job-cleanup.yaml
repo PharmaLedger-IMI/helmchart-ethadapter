@@ -1,0 +1,163 @@
+{{- /*
+1. Role, RoleBinding and ServiceAccount for Cleanup Job
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "epi.fullname" . }}-cleanup
+  annotations:
+    "description": "Role for Cleanup Job"
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-1"
+rules:
+# Delete Init Job
+- apiGroups:
+  - "batch"
+  resourceNames:
+  - "{{ include "epi.fullname" . }}-init"
+  resources:
+  - jobs
+  verbs:
+  - delete
+# Get SeedsBackup, create backup from it and delete SeedsBackup
+- apiGroups:
+  - ""
+  resourceNames:
+  - {{ include "epi.configMapSeedsBackupName" . | quote }}
+  resources:
+  - configmaps
+  verbs:
+  - get
+  # - patch
+  - delete
+# Required to create a backup of SeedsBackup
+# We cannot restrict create verb to a resourceName - See https://github.com/kubernetes/kubernetes/issues/80295
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+{{- if eq (toString .Values.persistence.deletePvcOnUninstall) "true" }}
+- apiGroups:
+  - ""
+  resourceNames:
+  - {{ include "epi.fullname" . | quote }}
+  resources:
+  - persistentvolumeclaims 
+  verbs:
+  - delete
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "epi.fullname" . }}-cleanup
+  annotations:
+    "description": "RoleBinding for Cleanup Job"
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "epi.fullname" . }}-cleanup
+subjects:
+- kind: ServiceAccount
+  name: {{ include "epi.fullname" . }}-cleanup
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "epi.fullname" . }}-cleanup
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+  annotations:
+    "description": "ServiceAccount for Cleanup Job"
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-1"
+---
+
+{{- /*
+3. This Job starts the apihub, then starts the build process. 
+   After build process completion the seedsBackup ConfigMap will updated.
+
+Details:
+The pod consists of an initContainer and a "main" container which share a temporary volume.
+A dedicated ServiceAccount with write permissions to the ConfigMap containing the seedsBackup is used by the pod.
+1. The apiHub/epi application runs in the initContainer as background process. 
+   After a short delay (10s) the build process starts and writes the seedsBackup to the mounted temporary volume share with the "main" container.
+   Then the process exists and the init container stops.
+2. The "main" container starts and writes the content of the seedBackup file into a ConfigMap.
+   It has the permission doing so via the ServiceAccount
+
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "epi.fullname" . }}-cleanup
+  annotations:
+    "description": "Cleanup Job running after deletion of helm managed resource"
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "0"
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Use the init ServiceAccount which has permissions to write to configMap
+      serviceAccountName: {{ include "epi.fullname" . }}-cleanup
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: Never
+      containers:
+      - name: cleanup
+        image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy | default "IfNotPresent" }}
+        command:
+          - sh
+          - -c
+        args:
+          - |
+            set -e
+            echo "Cleanup Job started"
+
+            echo "1. Deleting Init Job ..."
+            kubectl delete job {{ include "epi.fullname" . }}-init --ignore-not-found=true
+
+            backupname="{{ include "epi.configMapSeedsBackupName" . }}-${IMAGE_TAG}-final-backup-$(date +%s)"
+            echo "2. Backing up Configmap {{ include "epi.configMapSeedsBackupName" . }} to $backupname ..."
+            kubectl patch cm {{ include "epi.configMapSeedsBackupName" . }} -p "{\"metadata\":{ \"name\":\"$backupname\"}}" --dry-run=client -o yaml | kubectl create -f -
+
+            echo "3. Deleting Configmap {{ include "epi.configMapSeedsBackupName" . }} ..."
+            kubectl delete cm {{ include "epi.configMapSeedsBackupName" . }} --ignore-not-found=true
+
+            {{- if eq (toString .Values.persistence.deletePvcOnUninstall) "true" }}
+            echo "4. Deleting PersistentVolumeClaim {{ include "epi.fullname" . }} ..."
+            kubectl delete pvc {{ include "epi.fullname" . }} --ignore-not-found=true
+            {{- else }}
+            echo "4. SKIPPED: Deleting PersistentVolumeClaim {{ include "epi.fullname" . }}."
+            {{- end }}
+        env:
+          - name: IMAGE_TAG
+            value: "{{ .Values.image.tag | default .Chart.AppVersion }}"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
