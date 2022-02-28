@@ -13,6 +13,14 @@ image:
   # -- Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# image:
+#   # -- The repository of the container image
+#   repository: 535161841476.dkr.ecr.eu-central-1.amazonaws.com/torsten-pharmaledger-epi
+#   # -- Image Pull Policy
+#   pullPolicy: Always # IfNotPresent
+#   # -- Overrides the image tag whose default is the chart appVersion.
+#   tag: "v1.0.2-builder"
+
 ## -- The strategy of the deployment. Defaults to Recreate as a PVC is bound to it.
 ## See `kubectl explain deployment.spec.strategy` for more and [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
 deploymentStrategy:
@@ -40,33 +48,52 @@ serviceAccount:
 # -- Annotations added to the pod
 podAnnotations: {}
 
-# -- Security Context for the pod.
+# -- Security Context for the pod. 
+# IMPORTANT: Take a look at values.yaml file for configuration for non-root user!
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod)
+#
+# For running as root-user (which is not recommendedIf you run as root user (which is absolutely NOT recommended) then 
 podSecurityContext: {}
-  # fsGroup: 2000
+  # fsGroup: 1000
 
-# -- Security Context for the application container.
+# -- Security Context for the application container
+# IMPORTANT: Take a look at values.yaml file for configuration for non-root user!
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
+# 
+# For running as non-root with uid 1000, remove {} from next line and uncomment next lines!
 securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
-  # readOnlyRootFilesystem: true
+  # # -- Running as readonly filesystem is currently (Feb 2022) not possible.
+  # readOnlyRootFilesystem: false
   # runAsNonRoot: true
   # runAsUser: 1000
 
-initJob:
-  kubectlImage:
-    # -- The repository of the container image
+# -- Settings for Container with kubectl installed used by Init and Cleanup Job
+kubectl:
+  image:
+    # -- The repository of the container image containing kubectl
     repository: bitnami/kubectl
     # -- Image Pull Policy
     pullPolicy: IfNotPresent
     # -- The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version.
     tag: "1.21.8"
 
+# -- Enable persistence using Persistent Volume Claims
+# See [http://kubernetes.io/docs/user-guide/persistent-volumes/](http://kubernetes.io/docs/user-guide/persistent-volumes/)
 persistence:
-  storageClassName: "gp2"
+  # -- Name of the storage class.
+  # If empty or not set then storage class will not be set - which means that the default storage class will be used.
+  storageClassName: ""
+  # -- Size of the volume
   size: "20Gi"
+  # -- Boolean flag whether to delete the persistent volume on uninstall or not.
+  deletePvcOnUninstall: true
+  finalizers:
+    - kubernetes.io/pvc-protection
+  accessModes:
+    - ReadWriteOnce
 
 service:
   # -- Either ClusterIP, NodePort or LoadBalancer.
@@ -79,14 +106,8 @@ service:
   # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
   annotations: {}
 
-# -- Configuration. Will be put in a configmap.
-# Required values: rpcAddress, smartContractAddress, smartContractAbi
+# -- Configuration. Will be put in ConfigMaps.
 config:
-  # IMPORTANT: Set these values!
-  # rpcAddress: "rpcAddress_value"
-  # smartContractAddress: "smartContractAddress_value"
-  # smartContractAbi: "smartContractAbi_value"
-
   # -- The Domain, e.g. "epipoc"
   domain: "epipoc"
   # -- The Subdomain, should be domain.company, e.g. epipoc.my-company
@@ -94,7 +115,7 @@ config:
   # -- The Vault domain, should be vault.company, e.g. vault.my-company
   vaultDomain: "vault.my-company"
   # -- The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000"
-  ethadapterUrl: "https://ethadapter.my-company.com:3000"
+  ethadapterUrl: "http://ethadapter.ethadapter:3000"
   # -- Centrally managed and provided BDNS Hosts Config
   bdnsHosts: |-
     {
@@ -218,11 +239,11 @@ livenessProbe:
 # -- Readiness probe.
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 readinessProbe:
-  httpGet:
-    path: /
-    port: http
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  timeoutSeconds: 1
+  exec:
+    command:
+    - cat
+    - /ePI-workspace/apihub-root/ready
+  initialDelaySeconds: 30
+  periodSeconds: 5
   successThreshold: 1
-  failureThreshold: 3
+  failureThreshold: 60

@@ -40,6 +40,7 @@ sequenceDiagram
   Note over PUP:Init Job +
   note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
   Note over I,U:Deployment
+  Note over I,U:ConfigMap Indicator with last succeeded build process
   Note over I,U:Further Configmaps
   Note over I,U:Service
   Note over I,U:Ingress
@@ -50,7 +51,18 @@ sequenceDiagram
 
 ## Init Job
 
-1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init* which schedules a pod consisting of an Init and Main Container.
+The Init Job is an important step and will be executed on helm [hooks](https://helm.sh/docs/topics/charts_hooks/) `pre-install` and `pre-upgrade`.
+Its pod consists of three containers, two init containers and one main container.
+
+```mermaid
+flowchart LR
+A(Init Container 1:<br/>Check necessity for build process) -->B(Init Container 2:<br/>Run build process if necessary)
+B --> C(Main Container:<br/>Write/Update ConfigMap Seedsbackup)
+```
+
+### Init Job Details
+
+1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init* which schedules a pod consisting of two Init Containers and one Main Container.
 
 ```mermaid
 flowchart LR
@@ -58,25 +70,38 @@ A(Helm pre-install/pre-upgrade hook) -->|deploys| B(Init Job)
 B -->|schedules| C(Init Pod)
 ```
 
-2. The Init Container uses the container image of the epi application and checks if the build process of the SSApps has already been run before for the current image (by checking existance of an *indicator file* on persistent storage).
-3. If yes/already run, it will do nothing and exit.
-4. If no/not run, then
+2. The first Init Container runs `kubectl` command to check existance of ConfigMap `Indicator` which contains information about latest successful build process.
+   1. If ConfigMap `Indicator` does not exist or latest build process does not match current epi application container image, then a *signal* file will be written to a shared volume between containers.
+   2. Otherwise the build process has already been executed for current application container image.
+
+```mermaid
+flowchart LR
+D(Init Container<br/>Kubectl) --> E{ConfigMap Indicator<br/>exists and<br/>matches current<br/>container image?}
+E -->|not exists| F[Write signal file to shared data volume]
+F --> G[Exit Init Container<br/>Kubectl]
+E -->|exists| G
+```
+
+3. The second Init Container uses the container image of the epi application and checks existance of *Signal* file from first Init Container.
+4. If it does not exists, then no build process shall run and the container exists.
+5. If the *Signal* file exists, then
    1. Starts the apihub server (`npm run server`), waits for a short period of time and then starts the build process (`npm run build-all`).
    2. After build process, it writes an *indicator file* to persistent storage and hands-over the SeedsBackup file on a shared temporary volume between init and main container.
 
 ```mermaid
 flowchart LR
-D(Init Container) --> E{Indicator file exists?}
+D(Init Container<br/>application) --> E{Indicator file exists?}
 E -->|not exists| F[start apihub server]
 F --> G[sleep short time]
-G --> H[start build process]
-H --> I[create Indicator file]
-I --> J[write SeedsBackup file to shared data with main container]
+G --> H[build process]
+H --> I[create indicator file]
+H --> J[write SeedsBackup file to shared data with main container]
+I --> K
 J --> K
-E -->|exists| K[Exit Init Container]
+E -->|exists| K[Exit Init Container<br/>application]
 ```
 
-5. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
+6. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
 
 ```mermaid
 flowchart LR
@@ -84,29 +109,10 @@ L(Main Container) --> M{SeedsBackup file exists?}
 M -->|exists| N[Create ConfigMap SeedsBackup for current Image]
 N --> O[Update ConfigMap SeedsBackup]
 O --> P
-L -->|not exists| P[Exit]
+M -->|not exists| P[Exit Pod]
 ```
 
 After completion of the *Init Job* the application container will be deployed/restarted with the current *ConfigMap SeedsBackup*.
-
-## How Seeds backup will be put into ConfigMap
-
-Every time, on startup the application checks the existence of the so called SeedsBackup.
-
-1. If it does not exists - what's the case on first initial startup, also see output from logfile = `File ./apihub-root/seedsBackup does not exist, hopefully you are doing an initial build by generating fresh seeds` - then the apps will be generated, but onto the brick storage and their addresses put into the seedsbackup file.
-2. Now (in a manual deployment), the content of seedsBackup needed to be put into a Kubernetes Configmap and the pod to be restarted manually.
-3. On the next start, the application detects the existing seedsBackup and skips app generation process.
-
-This helm chart automates the manual steps.
-
-1. The application itself is managed by a Kubernetes deployment which specifies a Pod containing an initContainer and a container for epi application.
-The initContainer blocks starting the epi application container until the ConfigMap contains a SeedBackup file.
-2. A Kubernetes Job (which runs only once), defines a Pod containing an initContainer and a container.
-The initContainer runs the epi application which generates apps and seedsBackup and stops after creation of seedsbackup.
-Then the "main" container starts which writes SeedsBackup into a Kubernetes ConfigMap (where the initContainer of the deployment is waiting for).
-3. Now the Kubernetes Job ends and the initContainer of the deployment detects the seedsBackup file and exit which starts the epi application in the container.
-
-Herefore
 
 ### Quick install with internal service of type ClusterIP
 
@@ -285,9 +291,9 @@ Tests can be found in [tests](./tests)
 | config.vaultDomain | string | `"vault.my-company"` | The Vault domain, should be vault.company, e.g. vault.my-company |
 | deploymentStrategy.type | string | `"Recreate"` |  |
 | fullnameOverride | string | `""` | fullnameOverride completely replaces the generated name. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
-| image.pullPolicy | string | `"Always"` | Image Pull Policy |
-| image.repository | string | `"535161841476.dkr.ecr.eu-central-1.amazonaws.com/torsten-pharmaledger-epi"` | The repository of the container image |
-| image.tag | string | `"v1.0.2-builder"` | Overrides the image tag whose default is the chart appVersion. |
+| image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
+| image.repository | string | `"public.ecr.aws/n4q1q0z2/pharmaledger-epi"` | The repository of the container image |
+| image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Secret(s) for pulling an container image from a private registry. See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) |
 | ingress.annotations | object | `{}` | Ingress annotations. For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/) For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/) For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/) For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations) |
 | ingress.className | string | `""` | The className specifies the IngressClass object which is responsible for that class. Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object. If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead. For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'. See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class |
@@ -296,9 +302,10 @@ Tests can be found in [tests](./tests)
 | ingress.hosts[0].paths[0].path | string | `"/"` | The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples) Note: For Ingress Controllers like AWS LB Controller see their specific documentation. |
 | ingress.hosts[0].paths[0].pathType | string | `"ImplementationSpecific"` | The type of path. This value is required since Kubernetes 1.18. For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types) and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/) |
 | ingress.tls | list | `[]` |  |
-| initJob.kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
-| initJob.kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image |
-| initJob.kubectlImage.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
+| kubectl | object | `{"image":{"pullPolicy":"IfNotPresent","repository":"bitnami/kubectl","tag":"1.21.8"}}` | Settings for Container with kubectl installed used by Init and Cleanup Job |
+| kubectl.image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
+| kubectl.image.repository | string | `"bitnami/kubectl"` | The repository of the container image containing kubectl |
+| kubectl.image.tag | string | `"1.21.8"` | The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version. |
 | livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":1}` | Liveness probe. See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
 | nameOverride | string | `""` | nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | nodeSelector | object | `{}` | Node Selectors in order to assign pods to certain nodes. See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) |
@@ -307,12 +314,11 @@ Tests can be found in [tests](./tests)
 | persistence.size | string | `"20Gi"` | Size of the volume |
 | persistence.storageClassName | string | `""` | Name of the storage class. If empty or not set then storage class will not be set - which means that the default storage class will be used. |
 | podAnnotations | object | `{}` | Annotations added to the pod |
-| podSecurityContext | object | `{"fsGroup":1000}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) IMPORTANT: 1. Traditionally if your pod is running as a non-root user (which you should),  you must specify a fsGroup inside the pod’s security context so that the volume can be readable and writable by the Pod. If you run as root user (which is absolutely NOT recommended) then  |
+| podSecurityContext | object | `{}` | Security Context for the pod.  IMPORTANT: Take a look at values.yaml file for configuration for non-root user! See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) For running as root-user (which is not recommendedIf you run as root user (which is absolutely NOT recommended) then  |
 | readinessProbe | object | `{"exec":{"command":["cat","/ePI-workspace/apihub-root/ready"]},"failureThreshold":60,"initialDelaySeconds":30,"periodSeconds":5,"successThreshold":1}` | Readiness probe. See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for the container |
-| securityContext | object | `{"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":1000}` | Security Context for the application container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
-| securityContext.readOnlyRootFilesystem | bool | `false` | Running as readonly filesystem is currently (Feb 2022) not possible. |
+| securityContext | object | `{}` | Security Context for the application container IMPORTANT: Take a look at values.yaml file for configuration for non-root user! See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)  For running as non-root with uid 1000, remove {} from next line and uncomment next lines! |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
 | service.port | int | `80` | Port where the service will be exposed |
 | service.type | string | `"ClusterIP"` | Either ClusterIP, NodePort or LoadBalancer. See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/) |
