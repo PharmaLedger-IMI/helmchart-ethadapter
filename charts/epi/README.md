@@ -29,7 +29,7 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
   - Value `persistence.storageClassName` has changed from `gp2` to empty string `""` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
   - Configurable sleep time between start of apihub and build process (`config.sleepTime`).
   - Configuration options for PersistentVolumeClaim
-  - Configuration has been prepated for running as non-root user (commented out yet, see [values.yaml](./values.yaml)).
+  - Configuration has been prepared for running as non-root user (commented out yet, see [values.yaml `podSecurityContext` and `securityContext`](./values.yaml)).
   - Minor optimizations at Kubernetes resources, e.g. set sizeLimit of temporary shared volume, explictly set readOnly flags at volumeMounts.
 
 ## Helm Lifecycle and Kubernetes Resources Lifetime
