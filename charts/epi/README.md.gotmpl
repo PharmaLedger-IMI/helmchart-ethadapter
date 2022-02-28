@@ -19,6 +19,16 @@
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
+## Changelog
+
+- From 0.1.x to 0.2.x
+  - Significant changes! Please uninstall old versions first! Upgrade from 0.1.x not tested and not guaranteed!
+  - Uses Helm hooks for Init and Cleanup
+  - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
+  - Value `config.ethadapterUrl` has changed to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
+  - Value `persistence.storageClassName` has changed from `gp2` to empty string `` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
+  
+
 ## Helm Lifecycle and Kubernetes Resources Lifetime
 
 This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to install, upgrade and manage the application and its resources.

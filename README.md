@@ -74,7 +74,7 @@ echo ""
 echo "Deploying epi application"
 helm upgrade --install epi ph-ethadapter/epi \
     --namespace=epi --create-namespace \
-    --version=0.1.3 \
+    --version=0.2.0 \
     --wait --wait-for-jobs \
     --timeout 10m \
     --set config.ethadapterUrl=http://ethadapter.ethadapter:3000

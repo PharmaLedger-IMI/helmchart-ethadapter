@@ -1,6 +1,6 @@
 # epi
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: poc.1.6](https://img.shields.io/badge/AppVersion-poc.1.6-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger epi (electronic product information) application
 
@@ -18,6 +18,16 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
 
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
+
+## Changelog
+
+- From 0.1.x to 0.2.x
+  - Significant changes! Please uninstall old versions first! Upgrade from 0.1.x not tested and not guaranteed!
+  - Uses Helm hooks for Init and Cleanup
+  - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
+  - Value `config.ethadapterUrl` has changed to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
+  - Value `persistence.storageClassName` has changed from `gp2` to empty string `` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
+ 
 
 ## Helm Lifecycle and Kubernetes Resources Lifetime
 
@@ -149,7 +159,7 @@ It is recommended to put non-sensitive configuration values in an configuration 
 2. Install via helm to namespace `default`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --values my-config.yaml \
     ```
@@ -249,7 +259,7 @@ Run `helm upgrade --helm` for full list of options.
     You can install into other namespace than `default` by setting the `--namespace` parameter, e.g.
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --namespace=my-namespace \
         --values my-config.yaml \
@@ -260,7 +270,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade my-release-name ph-ethadapter/epi --version=0.1.3 \
+    helm upgrade my-release-name ph-ethadapter/epi --version=0.2.0 \
         --install \
         --wait --timeout=600s \
         --values my-config.yaml \
