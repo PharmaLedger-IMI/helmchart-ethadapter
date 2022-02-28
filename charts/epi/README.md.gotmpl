@@ -46,6 +46,9 @@ sequenceDiagram
   Note over I,U:Ingress
   Note over I,U:ServiceAccount
   Note over PUN:Cleanup Job
+  Note over PUN:ServiceAccount Cleanup
+  Note over PUN:Role Cleanup
+  Note over PUN:RoleBinding Cleanup
   note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
 ```
 
@@ -113,6 +116,15 @@ M -->|not exists| P[Exit Pod]
 ```
 
 After completion of the *Init Job* the application container will be deployed/restarted with the current *ConfigMap SeedsBackup*.
+
+## Cleanup Job
+
+On deletion/uninstall of the helm chart a Kubernetes `cleanup` will be deployed in order to delete unmanaged helm resources created by helm hooks at `pre-install`.
+These resources are:
+
+1. Init Job - The Init Job was created on pre-install/pre-upgrade and will remain after its execution.
+2. PersistentVolumeClaim - In case the PersistentVolumeClaim shall not be deleted on deletion of the helm release, set `persistence.deletePvcOnUninstall` to `false`.
+3. ConfigMap SeedsBackup - Prior to deletion of the ConfigMap, a backup ConfigMap will be created with naming schema `{HELM_RELEASE_NAME}-seedsbackup-{IMAGE_TAG}-final-backup-{EPOCH_IN_SECONDS}`, e.g. `epi-seedsbackup-poc.1.6-final-backup-1646063552`
 
 ### Quick install with internal service of type ClusterIP
 
