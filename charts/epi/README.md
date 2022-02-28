@@ -26,7 +26,7 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
   - Optimized Build process: SeedsBackup will only be created if the underlying Container image has changed, e.g. in case of an upgrade!
   - Readiness probe implemented. Application container is considered as *ready* after build process has been finished.
   - Value `config.ethadapterUrl` has changed from `https://ethadapter.my-company.com:3000` to `http://ethadapter.ethadapter:3000` in order to reflect changes in [ethadapter](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/epi-improve-build/charts/ethadapter).
-  - Value `persistence.storageClassName` has changed from `gp2` to empty string `` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
+  - Value `persistence.storageClassName` has changed from `gp2` to empty string `""` in order to remove pre-defined setting for AWS and to be cloud-agnostic by default.
   - Configurable sleep time between start of apihub and build process (`config.sleepTime`).
   - Configuration options for PersistentVolumeClaim
   - Configuration has been prepated for running as non-root user (commented out yet, see [values.yaml](./values.yaml)).
