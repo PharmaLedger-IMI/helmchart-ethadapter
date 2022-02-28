@@ -50,7 +50,7 @@ sequenceDiagram
 
 ## Init Job
 
-1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init*
+1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init* which schedules a pod consisting of an Init and Main Container.
 
 ```mermaid
 flowchart LR
@@ -66,8 +66,7 @@ B -->|schedules| C(Init Pod)
 
 ```mermaid
 flowchart LR
-C -->|start| D(Init Container)
-D --> E{Indicator file exists?}
+D(Init Container) --> E{Indicator file exists?}
 E -->|not exists| F[start apihub server]
 F --> G[sleep short time]
 G --> H[start build process]
@@ -81,8 +80,7 @@ E -->|exists| K[Exit Init Container]
 
 ```mermaid
 flowchart LR
-K -->|start| L(main container)
-L --> M{SeedsBackup file exists?}
+L(Main Container) --> M{SeedsBackup file exists?}
 M -->|exists| N[Create ConfigMap SeedsBackup for current Image]
 N --> O[Update ConfigMap SeedsBackup]
 O --> P
