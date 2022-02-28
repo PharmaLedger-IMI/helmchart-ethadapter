@@ -19,9 +19,9 @@ A Helm chart for Pharma Ledger epi (electronic product information) application
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
-## Helm Lifecycle and Kubernetes Objects Lifetime
+## Helm Lifecycle and Kubernetes Resources Lifetime
 
-This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to
+This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to install, upgrade and manage the application and its resources.
 
 ```mermaid
 sequenceDiagram
@@ -47,6 +47,49 @@ sequenceDiagram
   Note over PUN:Cleanup Job
   note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
 ```
+
+## Init Job
+
+1. On `helm install` and `helm upgrade`, helm will deploy a Kubernete Job named *job-init*
+
+```mermaid
+flowchart LR
+A(Helm pre-install/pre-upgrade hook) -->|deploys| B(Init Job)
+B -->|schedules| C(Init Pod)
+```
+
+2. The Init Container uses the container image of the epi application and checks if the build process of the SSApps has already been run before for the current image (by checking existance of an *indicator file* on persistent storage).
+3. If yes/already run, it will do nothing and exit.
+4. If no/not run, then
+   1. Starts the apihub server (`npm run server`), waits for a short period of time and then starts the build process (`npm run build-all`).
+   2. After build process, it writes an *indicator file* to persistent storage and hands-over the SeedsBackup file on a shared temporary volume between init and main container.
+
+```mermaid
+flowchart LR
+C -->|start| D(Init Container)
+D --> E{Indicator file exists?}
+E -->|not exists| F[start apihub server]
+F --> G[sleep short time]
+G --> H[start build process]
+H --> I[create Indicator file]
+I --> J[write SeedsBackup file to shared data with main container]
+J --> K
+E -->|exists| K[Exit Init Container]
+```
+
+5. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
+
+```mermaid
+flowchart LR
+K -->|start| L(main container)
+L --> M{SeedsBackup file exists?}
+M -->|exists| N[Create ConfigMap SeedsBackup for current Image]
+N --> O[Update ConfigMap SeedsBackup]
+O --> P
+L -->|not exists| P[Exit]
+```
+
+After completion of the *Init Job* the application container will be deployed/restarted with the current *ConfigMap SeedsBackup*.
 
 ## How Seeds backup will be put into ConfigMap
 

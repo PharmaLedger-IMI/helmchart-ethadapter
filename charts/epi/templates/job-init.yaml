@@ -128,7 +128,7 @@ spec:
         args:
           - |
             # 1. Check if build process needs to be done by checking if build process has not been executed in the past for current Image Tag.
-            # 2. If yes: Start server in background, run build, then create markerfile and copy seedBackup to shared folder with main container
+            # 2. If yes: Start server in background, run build, then create indicator file and copy seedBackup to shared folder with main container
             cd /ePI-workspace
             if [ ! -f /ePI-workspace/apihub-root/external-volume/domains/${IMAGE_TAG} ]
             then 
@@ -147,7 +147,7 @@ spec:
               echo "=======> Build process done - rc=$rc"
               if [ $rc -eq 0 ]
               then 
-                echo "=======> Build process successful - Writing marker file for version $IMAGE_TAG ..."
+                echo "=======> Build process successful - Writing indicator file for version $IMAGE_TAG ..."
                 touch /ePI-workspace/apihub-root/external-volume/domains/$IMAGE_TAG
                 echo "=======> Copying seedsBackup to container-shared-data ..."
                 cp /ePI-workspace/apihub-root/seedsBackup /container-shared-data

@@ -95,7 +95,7 @@ spec:
             echo "=======> Build process done - rc=$rc"
             if [ $rc -eq 0 ]
             then 
-              echo "=======> Build process successful - Writing marker file that application is ready ..."
+              echo "=======> Build process successful - Writing indicator file that application is ready ..."
               touch /ePI-workspace/apihub-root/ready
               tail -f /dev/null
             fi
