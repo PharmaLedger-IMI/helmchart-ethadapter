@@ -28,6 +28,7 @@ rules:
   - ""
   resourceNames:
   - {{ include "epi.configMapSeedsBackupName" . | quote }}
+  - "{{ include "epi.fullname" . }}-indicator"
   resources:
   - configmaps
   verbs:
@@ -111,6 +112,35 @@ spec:
       {{- end }}
       restartPolicy: Never
       initContainers:
+      - name: indicator-check
+        image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy | default "IfNotPresent" }}
+        command:
+          - sh
+          - -c
+        args:
+          - |
+            # Exit on error
+            set -e
+            last_built_image=$(kubectl get cm --ignore-not-found {{ include "epi.fullname" . }}-indicator -o jsonpath='{.data.lastBuiltImage}')
+            if [ "$last_built_image" != "$FULL_IMAGE" ]
+            then 
+              echo "=======> Not build yet for image=$FULL_IMAGE!"
+              echo "=======> Writing signal file in order to start build process ..."
+              touch /container-shared-data/doBuild
+            else
+              echo "=======> Already built for image=$FULL_IMAGE"
+            fi
+            echo "=======> Exiting ..."
+            exit 0
+        env:
+          - name: FULL_IMAGE
+            value: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        volumeMounts:
+            # We mount a temporary volume in order to signal if build process must run or not
+          - name: container-shared-data
+            mountPath: /container-shared-data
+            readOnly: false
       - name: init-epi
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
@@ -127,10 +157,12 @@ spec:
           - -c
         args:
           - |
+            # Exit on error
+            set -e
             # 1. Check if build process needs to be done by checking if build process has not been executed in the past for current Image Tag.
-            # 2. If yes: Start server in background, run build, then create indicator file and copy seedBackup to shared folder with main container
+            # 2. If yes: Start server in background, wait, run build and copy seedBackup to shared folder with main container.
             cd /ePI-workspace
-            if [ ! -f /ePI-workspace/apihub-root/external-volume/domains/${IMAGE_TAG} ]
+            if [ -f /container-shared-data/doBuild ]
             then 
               echo "=======> Not build yet!"
               echo "=======> Copying seedsBackupOnStartup to seedsBackup ..."
@@ -147,8 +179,6 @@ spec:
               echo "=======> Build process done - rc=$rc"
               if [ $rc -eq 0 ]
               then 
-                echo "=======> Build process successful - Writing indicator file for version $IMAGE_TAG ..."
-                touch /ePI-workspace/apihub-root/external-volume/domains/$IMAGE_TAG
                 echo "=======> Copying seedsBackup to container-shared-data ..."
                 cp /ePI-workspace/apihub-root/seedsBackup /container-shared-data
                 ls -las /container-shared-data
@@ -217,16 +247,19 @@ spec:
             # We mount a temporary volume in order to hand over data from init to main container
           - name: container-shared-data
             mountPath: /container-shared-data
+            readOnly: false
       containers:
       - name: write-configmap
-        image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
-        imagePullPolicy: {{ .Values.initJob.kubectlImage.pullPolicy | default "IfNotPresent" }}
+        image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy | default "IfNotPresent" }}
         command:
           - sh
           - -c
         args:
           - |
-            # If seedsBackup file exists, apply Kubernetes ConfigMap from it.
+            # Exit on error
+            set -e
+            # If seedsBackup file exists, apply Kubernetes ConfigMap from it and create indicator file.
             if [ -f /container-shared-data/seedsBackup ]
             then 
               backupname="{{ include "epi.configMapSeedsBackupName" . }}-${IMAGE_TAG}-$(date +%s)"

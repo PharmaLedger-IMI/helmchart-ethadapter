@@ -120,8 +120,8 @@ spec:
       restartPolicy: Never
       containers:
       - name: cleanup
-        image: "{{ .Values.initJob.kubectlImage.repository }}:{{ .Values.initJob.kubectlImage.tag }}"
-        imagePullPolicy: {{ .Values.initJob.kubectlImage.pullPolicy | default "IfNotPresent" }}
+        image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy | default "IfNotPresent" }}
         command:
           - sh
           - -c

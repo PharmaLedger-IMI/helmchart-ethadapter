@@ -17,12 +17,18 @@ metadata:
     "helm.sh/resource-policy": keep
   labels:
     {{- include "epi.labels" . | nindent 4 }}
+  {{- with .Values.persistence.finalizers  }}
+  finalizers:
+{{ toYaml . | indent 4 }}
+  {{- end }}
 spec:
-{{- if .Values.persistence.storageClassName }}
+  {{- if .Values.persistence.storageClassName }}
   storageClassName: {{ .Values.persistence.storageClassName | quote }}
-{{- end }}
+  {{- end }}
   accessModes:
-    - ReadWriteOnce
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
   resources:
     requests:
-      storage: {{ .Values.persistence.size }}
+      storage: {{ .Values.persistence.size | quote }}

@@ -9,3 +9,14 @@ Create Configmaps from templates
 {{- include "epi.configmap-domains" (list $ . "" (dict)) }}
 ---
 {{- include "epi.configmap-environment" (list $ . "" (dict)) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "epi.fullname" . }}-indicator
+  annotations:
+    "description": "Indicator which image was successfully built"
+  labels:
+    {{- include "epi.labels" . | nindent 4 }}
+data:
+  lastBuiltImage: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
