@@ -51,19 +51,19 @@ sequenceDiagram
   Note over PIN:ServiceAccount Init
   Note over PIN:Role Init
   Note over PIN:RoleBinding Init
-  Note over PUP:Init Job +
   note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
-  Note over I,U:Deployment
-  Note over I,U:ConfigMap Indicator with last succeeded build process
-  Note over I,U:Further Configmaps
-  Note over I,U:Service
-  Note over I,U:Ingress
-  Note over I,U:ServiceAccount
+  Note over PUP,U:Deployment
+  Note over PUP,U:ConfigMap Indicator with last succeeded build process
+  Note over PUP,U:Further Configmaps
+  Note over PUP,U:Service
+  Note over PUP,U:Ingress
+  Note over PUP,U:ServiceAccount
+  Note over PUP:Init Job<br/>and more<br/>(see pre-install)
   Note over PUN:Cleanup Job
   Note over PUN:ServiceAccount Cleanup
   Note over PUN:Role Cleanup
   Note over PUN:RoleBinding Cleanup
-  note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
+  note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim (optional)<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
 ```
 
 ## Init Job
@@ -111,11 +111,9 @@ D(Init Container<br/>application) --> E{Indicator file exists?}
 E -->|not exists| F[start apihub server]
 F --> G[sleep short time]
 G --> H[build process]
-H --> I[create indicator file]
-H --> J[write SeedsBackup file to shared data with main container]
-I --> K
-J --> K
-E -->|exists| K[Exit Init Container<br/>application]
+H --> I[write SeedsBackup file to shared data with main container]
+I --> J
+E -->|exists| J[Exit Init Container<br/>application]
 ```
 
 6. The Main Container has kubectl installed and checks if SeedsBackup file was handed over by Init Container.
