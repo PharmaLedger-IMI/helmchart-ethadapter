@@ -108,6 +108,8 @@ service:
 
 # -- Configuration. Will be put in ConfigMaps.
 config:
+  # The time to sleep between start of apihub (npm run server) and build process (npm run build-all)
+  sleepTime: "10s"
   # -- The Domain, e.g. "epipoc"
   domain: "epipoc"
   # -- The Subdomain, should be domain.company, e.g. epipoc.my-company
