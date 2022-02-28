@@ -101,7 +101,7 @@ metadata:
   annotations:
     "description": "Cleanup Job running after deletion of helm managed resource"
     "helm.sh/hook": post-delete
-    "helm.sh/hook-delete-policy": before-hook-creation # ,hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "0"
 spec:
   backoffLimit: 1
