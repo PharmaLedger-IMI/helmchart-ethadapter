@@ -52,8 +52,8 @@ sequenceDiagram
   Note over PIN:RoleBinding Init
   note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
   Note over PUP,U:Deployment
-  Note over PUP,U:ConfigMap Build-Info with last succeeded build process
-  Note over PUP,U:Further Configmaps
+  Note over PUP,U:ConfigMap build-info
+  Note over PUP,U:Configmaps for application
   Note over PUP,U:Service
   Note over PUP,U:Ingress
   Note over PUP,U:ServiceAccount
