@@ -19,6 +19,35 @@
 - [Here](./README.md#values) is a full list of all configuration values.
 - The [values.yaml file](./values.yaml) shows the raw view of all configuration values.
 
+## Helm Lifecycle and Kubernetes Objects Lifetime
+
+This helm chart uses Helm [hooks](https://helm.sh/docs/topics/charts_hooks/) in order to 
+
+```mermaid
+sequenceDiagram
+  participant PIN as pre-install
+  participant PUP as pre-upgrade
+  participant I as install
+  participant U as uninstall
+  participant PUN as post-uninstall
+  Note over PIN,PUN: PersistentVolumeClaim
+  Note over PIN,PUN: ConfigMap SeedsBackup
+  Note over PIN:Init Job
+  Note over PIN:ConfigMaps Init
+  Note over PIN:ServiceAccount Init
+  Note over PIN:Role Init
+  Note over PIN:RoleBinding Init
+  Note over PUP:Init Job +
+  note right of PIN: Note: The Init Job stores <br/>Seeds in Configmap SeedsBackup and <br/> is either executed by a) pre-install hook or<br/>b)pre-upgrade hook
+  Note over I,U:Deployment
+  Note over I,U:Further Configmaps
+  Note over I,U:Service
+  Note over I,U:Ingress
+  Note over I,U:ServiceAccount
+  Note over PUN:Cleanup Job
+  note right of PUN: Note: The Cleanup job<br/>1. deletes PersistentVolumeClaim<br/>2. creates final backup of ConfigMap SeedsBackup<br/>3. deletes ConfigMap SeedsBackup
+```
+
 ## How Seeds backup will be put into ConfigMap
 
 Every time, on startup the application checks the existence of the so called SeedsBackup.
