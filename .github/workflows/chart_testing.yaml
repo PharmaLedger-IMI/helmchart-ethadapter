@@ -1,0 +1,28 @@
+# https://github.com/helm/chart-testing
+name: Chart testing
+on: pull_request
+
+jobs:
+  chart-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        name: Checkout
+        with:
+          fetch-depth: 0
+
+      #
+      # Note: v3.5.0 = sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4
+      #
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(docker run --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing@sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct list-changed --config ct.yaml)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
+      - name: Run chart-testing (lint)
+        id: lint
+        run: |
+          docker run --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing@sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct lint --config ct.yaml
