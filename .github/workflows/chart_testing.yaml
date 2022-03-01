@@ -17,7 +17,7 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(docker run -it --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing:sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct list-changed --config ct.yaml)
+          changed=$(docker run --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing:sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct list-changed --config ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
           fi
@@ -25,4 +25,4 @@ jobs:
       - name: Run chart-testing (lint)
         id: lint
         run: |
-          docker run -it --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing:sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct lint --config ct.yaml
+          docker run --rm --workdir=/data --volume "$(pwd)":/data quay.io/helmpack/chart-testing:sha256:40d3529ca14fb02940091ae0b3fa77ce6c96ad78b31bbb243f4eed5ac33bdbe4 ct lint --config ct.yaml
