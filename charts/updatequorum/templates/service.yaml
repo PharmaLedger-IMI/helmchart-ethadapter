@@ -1,0 +1,64 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "updatequorum.fullname" . }}
+  labels:
+    name: {{ include "updatequorum.fullname" . }}
+    app: {{ template "updatequorum.fullname" . }}
+    chart: {{ template "updatequorum.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+    helm.sh/chart: {{ include "updatequorum.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.loadbalancerConfig.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.loadbalancerConfig.type }}
+  selector:
+    app: {{ template "updatequorum.fullname" . }}
+    release: {{ .Release.Name }}
+    component: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: rlpx
+      port: {{ .Values.node.quorum.p2p.port }}
+      targetPort: {{ .Values.node.quorum.p2p.port }}
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "updatequorum.fullname" . }}-rpc
+  labels:
+    name: {{ include "updatequorum.fullname" . }}-rpc
+    app: {{ template "updatequorum.fullname" . }}-rpc
+    chart: {{ template "updatequorum.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    namespace: {{ .Release.Namespace }}
+    app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+    helm.sh/chart: {{ include "updatequorum.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: NodePort
+  selector:
+    app: {{ template "updatequorum.fullname" . }}-rpc
+    release: {{ .Release.Name }}
+    component: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: rpc
+      port: {{ .Values.node.quorum.rpc.port }}
+      targetPort: {{ .Values.node.quorum.rpc.port }}
+      protocol: TCP

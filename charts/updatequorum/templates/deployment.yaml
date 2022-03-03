@@ -1,0 +1,167 @@
+{{- if .Values.deployment_flag }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "updatequorum.fullname" . }}
+  labels:
+    app: {{ template "updatequorum.name" . }}
+    chart: {{ template "updatequorum.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    namespace: {{ .Release.Namespace }}
+    component: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+    helm.sh/chart: {{ include "updatequorum.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ include "updatequorum.fullname" . }}
+      release: {{ .Release.Name }}
+      component: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  serviceName: {{ include "updatequorum.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "updatequorum.fullname" . }}
+        release: {{ .Release.Name }}
+        component: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "updatequorum.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "updatequorum.fullname" . }}-sa
+      containers:
+      - name: {{ include "updatequorum.fullname" . }}-quorum
+        image: {{ .Values.image.quorum.repository }}:{{ .Values.image.quorum.tag }}
+        imagePullPolicy: {{ .Values.image.quorum.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: "{{ .Values.node.quorum.resources.cpuRequest }}"
+            memory: "{{ .Values.node.quorum.resources.memRequest }}"
+          limits:
+            cpu: "{{ .Values.node.quorum.resources.cpuLimit }}"
+            memory: "{{ .Values.node.quorum.resources.memLimit }}"
+        env:
+          #POD_IP might be not necessary since nat-none, POD_NAME= don't know where it is used
+          # - name: POD_IP
+          #   valueFrom:
+          #     fieldRef:
+          #       fieldPath: status.podIP
+          # - name: POD_NAME
+          #   valueFrom:
+          #     fieldRef:
+          #       fieldPath: metadata.name
+          #QUORUM_NETWORK_ID - in romsoft is hardcoded to 10
+          - name: QUORUM_NETWORK_ID
+            value: {{ .Values.node.quorum.networkId }}
+          #don't know where is used
+          # - name: QUORUM_CONSENSUS
+          #   value: istanbul
+          - name: PRIVATE_CONFIG
+            value: "ignore"
+          - name: QUORUM_DATA_DIR
+            value: /etc/quorum/qdata/dd
+          - name: QUORUM_HOME
+            value: /etc/quorum/qdata
+          #why is duplicating?
+          # - name: QHOME
+          #   value: /etc/quorum/qdata
+          # might be not necesary, or replaceble with fullname
+          # - name: THIS_NODE_ID
+          #   value: quorum-node-0
+          # not used anywhere, but anyway will need to be supplied by secret
+          #- name: THIS_ENODE
+          #  value: 5cc30b8deb1d082fe8cd3ed7716ef995a3665d58d6176e5f0c825696d38b0b8c5a04e5596813ae61e184881e8b591a63ded84a738ab6c5b92a4303dd73996d5f
+        volumeMounts:
+          - name: data
+            mountPath: {{ .Values.node.quorum.dataPath }}
+          - name: secret-store
+            mountPath: {{ .Values.node.quorum.keysPath }}
+            readOnly: true
+          - name: genesis
+            mountPath: {{ .Values.node.quorum.genesisFilePath }}
+            readOnly: true
+          - name: static-nodes
+            mountPath: {{ .Values.node.quorum.staticNodesPath }}
+            readOnly: true
+        ports: 
+          - name: json-rpc
+            containerPort: {{ .Values.node.quorum.rpc.port }}
+            protocol: TCP
+          - name: rlpx
+            containerPort: {{ .Values.node.quorum.p2p.port }}
+            protocol: TCP
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |
+            exec
+            #might be an issue. we need to add curl beforehead since the network will block calls
+            #apk add curl
+            geth --datadir={{ .Values.node.quorum.dataPath }} init {{ .Values.node.quorum.genesisFilePath }}/genesis.json
+            #based on configmap nodekeyconfig is anding under geth/nodekey
+            cp {{ .Values.node.quorum.keysPath }}/{{ .Values.keyvault.nodekeyname }} {{ .Values.node.quorum.dataPath }}/geth/nodekey
+            cp {{ .Values.node.quorum.staticNodesPath }}/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
+
+            geth \
+              --datadir {{ .Values.node.quorum.dataPath }} \
+              --gcmode archive \
+              --syncmode full \
+              --istanbul.blockperiod {{ .Values.node.quorum.miner.blockPeriod }} \
+              --mine \
+              --miner.threads {{ .Values.node.quorum.miner.threads }} \
+              --emitcheckpoints \
+              --permissioned \
+              --nodiscover \
+              --nat=none \
+              --verbosity {{ .Values.node.quorum.log.verbosity }} \
+              --networkid {{ .Values.node.quorum.networkId }} \
+              --port {{ .Values.node.quorum.p2p.port }} \
+              --rpc \
+              --rpcaddr {{ .Values.node.quorum.rpc.addr }} \
+              --rpcport {{ .Values.node.quorum.rpc.port }} \
+              --rpcapi {{ .Values.node.quorum.rpc.api | quote }} \
+              --rpccorsdomain {{ .Values.node.quorum.rpc.corsDomain | quote }} \
+              --rpcvhosts {{ .Values.node.quorum.rpc.vHosts | quote }}
+      volumes:
+          - name: secrets-store
+            csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: {{ include "updatequorum.fullname" . }}-secret
+            {{- if  eq .Values.provider "azure" }}
+              #required for service principal mode. clientid and clientsecret
+              nodePublishSecretRef:
+                name: secrets-store-creds
+            {{- end }}
+          - name: genesis
+            configMap:
+              #to see if possible to inject files
+              name: {{ include "updatequorum.fullname" . }}-genesis
+              items:
+                - key: genesis.json
+                  path: genesis.json
+          - name: static-nodes
+            configMap:
+              name: {{ include "updatequorum.fullname" . }}-staticnodes
+              items:
+                - key: static-nodes.json
+                  path: static-nodes.json
+          {{- if eq .Values.provider "azure" }}
+          - name: data
+            azureDisk:
+              kind: Managed
+              diskName: {{ .Values.azuredisk.name }}
+              diskURI: {{ .Values.azuredisk.uri }}
+          {{- end}}
+{{- end }}
