@@ -8,11 +8,11 @@ A Helm chart for Pharma Ledger Ethereum Adapter Service
 
 - [helm 3](https://helm.sh/docs/intro/install/)
 - These mandatory configuration values:
-  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545` - Default value ready for standalone quorum/sandbox
-  - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
-  - Smart Contract Abi - default value ready for epi application v1.1.x or higher
+  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545` - **Note:** Default value ready for standalone quorum/sandbox
+  - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91` - **Note:** If not provided will be read from helm chart *smartcontract*
+  - Smart Contract Abi - **Note:** Default value ready for epi application v1.1.x or higher
   <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. for Sandbox environment and standalone-quorum `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
+  - Org Account JSON - The confidential private key and address in JSON format - **Noe:** For Sandbox environment and standalone-quorum use `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
 
 **NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself
 by reading Smart Contract address from ConfigMap installed by helm chart *smartcontract*.
