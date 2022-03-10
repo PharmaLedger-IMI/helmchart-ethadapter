@@ -1,8 +1,8 @@
 apiVersion: v2
 name: smartcontract
 description: |
-  A Helm chart for deploying the Smartcontract on a goquorum node and creating an OrgAccount.
-  OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernetes Secret and ConfigMap to make them usable by other components running on Kubernetes.
+  A Helm chart for deploying the Smartcontract on a goquorum node for a given ETH account.
+  The anchoring info (address and Abi) of the Smartcontract will be stored in a Kubernetes ConfigMap to make them usable by other components running on Kubernetes.
 
 # A chart can be either an 'application' or a 'library' chart.
 #

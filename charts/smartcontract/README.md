@@ -2,8 +2,8 @@
 
 ![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-A Helm chart for deploying the Smartcontract on a goquorum node and creating an OrgAccount.
-OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernetes Secret and ConfigMap to make them usable by other components running on Kubernetes.
+A Helm chart for deploying the Smartcontract on a goquorum node for a given ETH account.
+The anchoring info (address and Abi) of the Smartcontract will be stored in a Kubernetes ConfigMap to make them usable by other components running on Kubernetes.
 
 ## Requirements
 
