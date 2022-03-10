@@ -18,7 +18,6 @@ kubectlImage:
   pullPolicy: IfNotPresent
   # -- The Tag of the image containing kubectl. Minor Version should match to your Kubernetes Cluster Version.
   tag: "1.21.8"
-  
 
 imagePullSecrets: []
 nameOverride: ""
