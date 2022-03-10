@@ -8,7 +8,8 @@ The anchoring info (address and Abi) of the Smartcontract will be stored in a Ku
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
-- URL of the Quorum node to communicate with in order to deploy the smart contract - See config parameter `config.quorumNodeUrl`
+- DNS name/IP address and port of the Quorum node to communicate with in order to deploy the smart contract - See config parameters `config.quorumNodeAddress` and `config.quorumNodePort` - **Note:** Defaults to first node provided by helm chart *standalone-quorum* on a sandbox environment.
+- ETH account address of preexisting and unlocked account. See `config.account` - **Note:** Default to account provided by helm chart *standalone-quorum* on a sandbox environment.
 
 ## Changelog
 
