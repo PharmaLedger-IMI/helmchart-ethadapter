@@ -4,11 +4,11 @@
 
 
 image:
-  # -- The repository of the node container which creates account and deploys contract
+  # -- The repository of the container image which deploys the Smart Contract
   repository: "pharmaledger/anchor_smart"
   # -- Image Pull Policy of the node container
   pullPolicy: IfNotPresent
-  # -- The Tag of the image of the node container
+  # -- The tag of the container image which deploys the Smart Contract
   tag: "latest"
 
 kubectlImage:
@@ -27,7 +27,7 @@ config:
   # -- Name of the ConfigMap with the anchoring info. If empty uses a generic name
   configMapAnchoringInfoName: "smartcontract-anchoring-info"
 
-  # -- DNS Name or IP Address of Quorum node
+  # -- DNS Name or IP Address of Quorum node.
   # Defaults to first Quorum node provided by helm chart 'standalone-quorum' on a Sandbox environment.
   quorumNodeAddress: "quorum-validator1.quorum"
   # -- Port of Quorum Node endpoint

@@ -77,12 +77,12 @@ helm delete smartcontract \
 | affinity | object | `{}` |  |
 | config.account | string | `"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784"` | Existing account on Blockchain network Defaults to the predefined account from node 'quorum-validator1' deployed by helm chart 'standalone-quorum' |
 | config.configMapAnchoringInfoName | string | `"smartcontract-anchoring-info"` | Name of the ConfigMap with the anchoring info. If empty uses a generic name |
-| config.quorumNodeAddress | string | `"quorum-validator1.quorum"` | DNS Name or IP Address of Quorum node Defaults to first Quorum node provided by helm chart 'standalone-quorum' on a Sandbox environment. |
+| config.quorumNodeAddress | string | `"quorum-validator1.quorum"` | DNS Name or IP Address of Quorum node. Defaults to first Quorum node provided by helm chart 'standalone-quorum' on a Sandbox environment. |
 | config.quorumNodePort | string | `"8545"` | Port of Quorum Node endpoint |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy of the node container |
-| image.repository | string | `"pharmaledger/anchor_smart"` | The repository of the node container which creates account and deploys contract |
-| image.tag | string | `"latest"` | The Tag of the image of the node container |
+| image.repository | string | `"pharmaledger/anchor_smart"` | The repository of the container image which deploys the Smart Contract |
+| image.tag | string | `"latest"` | The tag of the container image which deploys the Smart Contract |
 | imagePullSecrets | list | `[]` |  |
 | kubectlImage.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
 | kubectlImage.repository | string | `"bitnami/kubectl"` | The repository of the container image which creates configmap and secret |
