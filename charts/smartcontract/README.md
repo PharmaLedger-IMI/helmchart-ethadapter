@@ -42,7 +42,9 @@ Note: Persisting these values in Kubernetes ConfigMap enables passing values and
 
 ## Installing the Chart
 
-To install the chart with the release name `smartcontract` in namespace `ethadapter`:
+### Sandbox installation
+
+**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise *ethadapter* cannot auto-configure itself by reading values from Secret and ConfigMap.
 
 ```bash
 helm upgrade --install smartcontract ph-ethadapter/smartcontract \
@@ -53,7 +55,20 @@ helm upgrade --install smartcontract ph-ethadapter/smartcontract \
 
 ```
 
-**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise *ethadapter* cannot auto-configure itself by reading values from Secret and ConfigMap.
+### Non-Sandbox installation
+
+**Note:** An installation on non-Sandbox is usually not required as the SmartContract is already deployed on connected Blockchain network.
+
+```bash
+helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+  --version=0.3.0 \
+  --namespace=ethadapter --create-namespace \
+  --wait --wait-for-jobs \
+  --timeout 10m \
+  --set config.quorumNodeAddress="mynode.company.com" \
+  --set config.quorumNodePort=5432 \
+  --set config.account="0x1234567890abcdef"
+```
 
 ## Uninstalling the Chart
 
