@@ -81,29 +81,9 @@ The value for the Smart Contract Address
 {{- end -}}
 {{- end -}}
 
-{{/*
-The value for the Smart Contract Abi
-1. Look if value is explictly defined
-2. If not, look if ConfigMap exists and get value from there
-*/}}
-{{- define "ethadapter.smartContractAbi" -}}
-{{- if .Values.config.smartContractAbi }}
-{{- .Values.config.smartContractAbi }}
-{{- else }}
-{{- $configMap := lookup "v1" "ConfigMap" .Release.Namespace .Values.config.smartContractConfigMapName -}}
-{{- if $configMap -}}
-{{- required "Either config.smartContractAbi must be set or value must exists in ConfigMap" (get $configMap.data .Values.config.smartContractConfigMapAbiKey) }}
-{{- else -}}
-{{- required "Either config.smartContractAbi must be set or ConfigMap with value must exists" "" }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
 
 {{/*
 The value for the Org JSON
-1. Look if value is explictly defined
-2. If not, look if Secret exists and get value from there
 */}}
 {{- define "ethadapter.orgAccountJson" -}}
 {{- if .Values.secrets.orgAccountJson }}
@@ -111,11 +91,6 @@ The value for the Org JSON
 {{- else if .Values.secrets.orgAccountJsonBase64 }}
 {{- .Values.secrets.orgAccountJsonBase64 | b64dec }}
 {{- else }}
-{{- $secret := lookup "v1" "Secret" .Release.Namespace .Values.secrets.smartContractSecretName -}}
-{{- if $secret -}}
-{{- required "Either secrets.orgAccountJson/secrets.orgAccountJsonBase64 must be set or value must exists in Secret" (get $secret.data .Values.secrets.smartContractSecretOrgAccountJsonKey | b64dec) }}
-{{- else -}}
-{{- required "Either secrets.orgAccountJson/secrets.orgAccountJsonBase64 must be set or Secret with value must exists" "" }}
-{{- end -}}
+{{- required "Either secrets.orgAccountJson or secrets.orgAccountJsonBase64 must be set" "" }}
 {{- end -}}
 {{- end -}}

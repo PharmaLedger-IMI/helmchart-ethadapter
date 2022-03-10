@@ -2,9 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "ethadapter.fullname" . }}
+  annotations:
+    "description": "Configuration of EthAdapter"
   labels:
     {{- include "ethadapter.labels" . | nindent 4 }}
 data:
   rpcAddress: {{ required "config.rpcAddress must be set" .Values.config.rpcAddress | quote }}
   smartContractAddress: {{ include "ethadapter.smartContractAddress" . | quote }}
-  smartContractAbi: {{ include "ethadapter.smartContractAbi" . | quote }}
+  smartContractAbi: {{ required "config.smartContractAbi must be set" .Values.config.smartContractAbi | quote }}

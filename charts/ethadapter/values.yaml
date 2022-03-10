@@ -7,7 +7,7 @@ replicaCount: 1
 
 image:
   # -- The repository of the container image
-  repository: public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter
+  repository: "pharmaledger/apiadapter"
   # -- Image Pull Policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
@@ -68,27 +68,24 @@ config:
   # If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey'
   smartContractAddress: ""
   # -- Abi (interface) of the Smart Contract.
-  # If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey'
-  smartContractAbi: ""
+  # Must match the Abi of the deployed Smartcontract.
+  # Current default value compatible to epi application v1.1.x or higher
+  # Taken from https://github.com/PharmaLedger-IMI/eth-adapter/blob/2cc324b54c55e7b0019d46f2202740dcfa54444a/EthAdapter/k8s/ethadapter-configmap.yaml#L8
+  smartContractAbi: '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"str","type":"bool"}],"name":"BoolResult","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes1","name":"str","type":"bytes1"}],"name":"Bytes1Result","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"str","type":"bytes32"}],"name":"Bytes32Result","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"statusCode","type":"uint256"}],"name":"InvokeStatus","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes","name":"str","type":"bytes"}],"name":"Result","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string[2]","name":"str","type":"string[2]"}],"name":"StringArray2Result","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string[]","name":"str","type":"string[]"}],"name":"StringArrayResult","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"str","type":"string"}],"name":"StringResult","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"str","type":"uint256"}],"name":"UIntResult","type":"event"},{"inputs":[{"internalType":"string","name":"anchorId","type":"string"},{"internalType":"string","name":"newAnchorValue","type":"string"},{"internalType":"uint8","name":"v","type":"uint8"}],"name":"createAnchor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"anchorId","type":"string"},{"internalType":"string","name":"newAnchorValue","type":"string"},{"internalType":"uint8","name":"v","type":"uint8"}],"name":"appendAnchor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"anchorId","type":"string"}],"name":"getAllVersions","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"string","name":"anchorId","type":"string"}],"name":"getLastVersion","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"string[]","name":"anchors","type":"string[]"}],"name":"createOrUpdateMultipleAnchors","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"from","type":"uint256"},{"internalType":"uint256","name":"limit","type":"uint256"},{"internalType":"uint256","name":"maxSize","type":"uint256"}],"name":"dumpAnchors","outputs":[{"components":[{"internalType":"string","name":"anchorId","type":"string"},{"internalType":"string[]","name":"anchorValues","type":"string[]"}],"internalType":"struct Anchoring.Anchor[]","name":"","type":"tuple[]"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalNumberOfAnchors","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"hash","type":"bytes32"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"uint8","name":"v","type":"uint8"}],"name":"recover","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"nonpayable","type":"function"}]'
 
-  # -- The name of the existing ConfigMap to look for in case values are not explictly defined via smartContractAddress and smartContractAbi
+  # -- The name of the existing ConfigMap to look for in case value 'smartContractAddress' is not defined.
   smartContractConfigMapName: "smartcontract-anchoring-info"
-  # -- The key of the Address in the existing ConfigMap in case smartContractAddress is not explictly defined
+  # -- The key of the SmartContract Address in the existing ConfigMap in case 'smartContractAddress' is not explictly defined.
   smartContractConfigMapAddressKey: "address"
-  # -- The key of the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined
-  smartContractConfigMapAbiKey: "abi"
 
 secrets:
   # -- Org Account in JSON format. 
-  # If not set/empty and also orgAccountJsonBase64 is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
-  orgAccountJson: ""
+  # This value must be set or orgAccountJsonBase64
+  # Default value for sandbox environment with prefined ETH Account and its validator key for validator1
+  orgAccountJson: '{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}'
   # -- Org Account in JSON format base64 encoded. 
-  # If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey'
+  # This value must be set or orgAccountJson
   orgAccountJsonBase64: ""
-  # -- The name of the existing Secret to look for in case orgAccountJson or orgAccountJsonBase64 is not explictly set
-  smartContractSecretName: "smartcontract-org-account" # pragma: allowlist secret
-  # -- The key of Org Account Json in the existing Secret in case orgAccountJson or orgAccountJsonBase64 is not explictly set
-  smartContractSecretOrgAccountJsonKey: "infoJson" # pragma: allowlist secret
 
 ingress:
   # -- Whether to create ingress or not.
