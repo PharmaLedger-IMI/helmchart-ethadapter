@@ -12,9 +12,8 @@
 ## Changelog
 
 - From 0.2.x to 0.3.x
-  - To be used for epi application v1.1.x or higher. Not compatible with epi v1.0.x !
-  - Now using `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`).
-  - An ETH Account will *NOT* be created anymore. It is required that you own an ETH account in advance.
+  - Uses `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`) which is compatible to epi application v1.1.x or higher. Not compatible with epi v1.0.x !
+  - An preexisting ETH Account that you own needs must be provided. A new ETH account will *NOT* be created anymore.
   - Therefore no secret with OrgAccount data will be created anymore.
   - `config.quorumNodeUrl` has been replaced by `config.quorumNodeAddress` and `config.quorumNodePort`.
   - `config.account` refers to an ETH account created by helm chart *standalone-quorum*.

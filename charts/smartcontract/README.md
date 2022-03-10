@@ -13,9 +13,8 @@ The anchoring info (address and Abi) of the Smartcontract will be stored in a Ku
 ## Changelog
 
 - From 0.2.x to 0.3.x
-  - To be used for epi application v1.1.x or higher. Not compatible with epi v1.0.x !
-  - Now using `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`).
-  - An ETH Account will *NOT* be created anymore. It is required that you own an ETH account in advance.
+  - Uses `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`) which is compatible to epi application v1.1.x or higher. Not compatible with epi v1.0.x !
+  - An preexisting ETH Account that you own needs must be provided. A new ETH account will *NOT* be created anymore.
   - Therefore no secret with OrgAccount data will be created anymore.
   - `config.quorumNodeUrl` has been replaced by `config.quorumNodeAddress` and `config.quorumNodePort`.
   - `config.account` refers to an ETH account created by helm chart *standalone-quorum*.
@@ -76,9 +75,9 @@ helm delete smartcontract \
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
-| config.account | string | `"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784"` | Existing account on Blockchain network Note: This default value matches the predefined account from node 'quorum-validator1' deployed by helm chart 'standalone-quorum' |
+| config.account | string | `"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784"` | Existing account on Blockchain network Defaults to the predefined account from node 'quorum-validator1' deployed by helm chart 'standalone-quorum' |
 | config.configMapAnchoringInfoName | string | `"smartcontract-anchoring-info"` | Name of the ConfigMap with the anchoring info. If empty uses a generic name |
-| config.quorumNodeAddress | string | `"quorum-validator1.quorum"` | DNS Name or IP Address of Quorum node Please note that account must exist and is unlocked |
+| config.quorumNodeAddress | string | `"quorum-validator1.quorum"` | DNS Name or IP Address of Quorum node Defaults to first Quorum node provided by helm chart 'standalone-quorum' on a Sandbox environment. |
 | config.quorumNodePort | string | `"8545"` | Port of Quorum Node endpoint |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy of the node container |

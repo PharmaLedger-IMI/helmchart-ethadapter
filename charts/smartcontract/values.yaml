@@ -28,12 +28,12 @@ config:
   configMapAnchoringInfoName: "smartcontract-anchoring-info"
 
   # -- DNS Name or IP Address of Quorum node
-  # Please note that account must exist and is unlocked
+  # Defaults to first Quorum node provided by helm chart 'standalone-quorum' on a Sandbox environment.
   quorumNodeAddress: "quorum-validator1.quorum"
   # -- Port of Quorum Node endpoint
   quorumNodePort: "8545"
   # -- Existing account on Blockchain network
-  # Note: This default value matches the predefined account from node 'quorum-validator1' deployed by helm chart 'standalone-quorum'
+  # Defaults to the predefined account from node 'quorum-validator1' deployed by helm chart 'standalone-quorum'
   account: "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784"
 
 serviceAccount:
