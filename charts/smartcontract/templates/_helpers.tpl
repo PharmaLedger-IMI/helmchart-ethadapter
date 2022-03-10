@@ -62,33 +62,6 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-The Name of the Secret for the OrgAccount Data
-*/}}
-{{- define "smartcontract.secretNameOrgAccount" -}}
-{{- default (printf "%s-%s" (include "smartcontract.fullname" .) "org-account") .Values.config.secretOrgAccountName }}
-{{- end }}
-
-{{/*
-Lookup potentially existing orgAccountData data
-*/}}
-{{- define "smartcontract.orgAccountData" -}}
-{{- $secret := lookup "v1" "Secret" .Release.Namespace (include "smartcontract.secretNameOrgAccount" .) -}}
-{{- if $secret -}}
-{{/*
-    Reusing existing data
-*/}}
-infoJson: |-
-    {{ $secret.data.infoJson | default "" }}
-{{- else -}}
-{{/*
-    Use new data
-*/}}
-infoJson: ""
-{{- end -}}
-{{- end -}}
-
-
-{{/*
 The Name of the ConfigMap for the Anchoring SmartContract Data
 */}}
 {{- define "smartcontract.configMapNameAnchoringInfo" -}}
@@ -104,8 +77,6 @@ Lookup potentially existing AnchoringSmartContract data
 {{/*
     Reusing existing data
 */}}
-infoJson: |-
-    {{ $configMap.data.infoJson | default "" }}
 abi: |-
     {{ $configMap.data.abi | default "" }}
 address: |-
@@ -114,7 +85,6 @@ address: |-
 {{/*
     Use new data
 */}}
-infoJson: ""
 abi: ""
 address: ""
 {{- end -}}

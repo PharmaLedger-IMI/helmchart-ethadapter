@@ -11,6 +11,15 @@
 
 ## Changelog
 
+- From 0.2.x to 0.3.x
+  - To be used for epi application v1.x or higher. Not compatible with epi v1.0.x !
+  - Now using `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`).
+  - An ETH Account will *NOT* be created anymore. It is required that you own an ETH account in advance.
+  - Therefore no secret with OrgAccount data will be created anymore.
+  - `config.quorumNodeUrl` has been replaced by `config.quorumNodeAddress` and `config.quorumNodePort`.
+  - `config.account` refers to an ETH account created by helm chart *standalone-quorum*.
+  - `config.anchoringSC` has been removed. The SmartContract definition is now part of the container image.
+
 - From 0.1.x to 0.2.x
   - Value `config.quorumNodeUrl` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
   This reflects the change of chart [standalone-quorum](https://github.com/PharmaLedger-IMI/helmchart-ethadapter/tree/standalone-quorum-0.2.0/charts/standalone-quorum#changelog) from version 0.1.x to 0.2.x where member nodes are not enabled by default.
@@ -23,12 +32,12 @@
 ## How it works
 
 1. A Kubernetes Job will be deployed which triggers scheduling of a Pod
-2. The Pod generates an *OrgAccount* and anchors the SmartContract on the Quorum Blockchain.
-3. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) will being stored in a Kubernetes ConfigMap.
+2. The Pod compiles the SmartContract and anchors it with the configure ETH account on the Quorum Blockchain.
+3. Then the address and Abi of the SmartContract will be stored in a Kubernetes ConfigMap.
 
 ![How it works](./docs/smartcontract.drawio.png)
 
-Note: Persisting these values in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of *ethadapter* on a Sandbox environment.
+Note: Persisting these values in Kubernetes ConfigMap enables passing values and easier configuration of *ethadapter* on a Sandbox environment.
 
 ## Installing the Chart
 
