@@ -1,6 +1,6 @@
 # ethadapter
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.1](https://img.shields.io/badge/AppVersion-1.1-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
 A Helm chart for Pharma Ledger Ethereum Adapter Service
 
@@ -8,16 +8,19 @@ A Helm chart for Pharma Ledger Ethereum Adapter Service
 
 - [helm 3](https://helm.sh/docs/intro/install/)
 - These mandatory configuration values:
-  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545`
+  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545` - Default value ready for standalone quorum/sandbox
   - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
-  - Smart Contract Abi
+  - Smart Contract Abi - default value ready for epi application v1.1.x or higher
   <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
+  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}` - default value ready for Sandbox environment and standalone-quorum.
 
 **NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself
-by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret installed by helm chhart *smartcontract*.
+by reading Smart Contract address from ConfigMap installed by helm chart *smartcontract*.
 
 ## Changelog
+
+- From 0.3.x to 0.4.x
+  - Default values ready for epi application v1.1.x or higher.
 
 - From 0.2.x to 0.3.x
   - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
@@ -31,8 +34,10 @@ by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret 
 ## How it works
 
 This helm chart creates an own ConfigMap and Secret with required configuration values.
-In case you do not explictly provide `config.smartContractAddress`, `config.smartContractAbi` and `secrets.orgAccountJson` (or `secrets.orgAccountJsonBase64`),
-these values will be read from pre-existing ConfigMap/Secret (provided by helm chart *smartcontract*) in context of the user executing helm.
+The ConfigMap is being used to store a) address of Quorum Node, b) address of Smart Contract anchoring and c) Abi of the SmartContract.
+The Secret contains the ETH Account and its private key.
+
+In case you do not explictly provide `config.smartContractAddress` this value will be read from pre-existing ConfigMap (provided by helm chart *smartcontract*) in context of the user executing helm.
 
 1. The Kubernetes Deployment triggers creation of a ReplicaSet which schedules the pod(s).
 2. A Service exposes the pod. **By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
@@ -49,7 +54,7 @@ This is to prevent exposing the service to the internet by accident!**
 To install the chart with the release name `ethadapter` in namespace `ethadapter` and read configuration values from pre-existing ConfigMap/Secret created by helm chart *smartcontract*.
 
 ```bash
-helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
+helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.4.0 \
   --install \
   --wait \
   --timeout 10m
@@ -64,24 +69,23 @@ helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
     config:
       rpcAddress: "rpcAddress_value"
       smartContractAddress: "smartContractAddress_value"
-      smartContractAbi: "smartContractAbi_value"
     ```
 
 2. Install via helm to namespace `ethadapter` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
 
     ```bash
-    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.4.0 \
         --wait \
         --timeout 10m \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
+        --set-string secrets.orgAccountJson="\{ \"address\": \"0xabcdef1234567890\" \, \"privateKey\": \"0x1234567890abcdef\" \}"
 
     ```
 
 3. or pass sensitive *Org Account JSON* value in JSON format as base64 encoded string
 
     ```bash
-    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.3.0 \
+    helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.4.0 \
         --wait \
         --timeout 10m \
         --values my-config.yaml \
@@ -108,7 +112,6 @@ service:
 config:
   rpcAddress: "rpcAddress_value"
   smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
 ```
 
 There are more configuration options available like customizing the port and configuring the Load Balancer via annotations (e.g. for configuring SSL Listener).
@@ -182,7 +185,6 @@ ingress:
 config:
   rpcAddress: "rpcAddress_value"
   smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
 ```
 
 ## Uninstalling the Chart
@@ -223,23 +225,23 @@ rm -rf ./testresults/*
 # https://github.com/helm/helm/issues/5618
 echo ""
 echo "Default values and secret passed as String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJson="\{ \"key\": \"value\" \}" > ./tests/results/result_default2.yaml
 
 echo ""
 echo "Default values and secret passed as base64 encoded String"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values ./tests/data/default.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_default_base64.yaml
 
 echo ""
 echo "LoadBalancer"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values ./tests/data/loadbalancer.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer.yaml
 
 echo ""
 echo "LoadBalancer and annotations"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values ./tests/data/loadbalancer_annotations.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_loadbalancer_annotations.yaml
 
 echo ""
 echo "Ingress via AWS LB Controller"
-helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
+helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values ./tests/data/aws_lb_controller_ingress.yaml --set-string secrets.orgAccountJsonBase64="eyAia2V5IjogInZhbHVlIiB9" > ./tests/results/result_aws_lb_controller_ingress.yaml
 ```
 
 ## Maintainers
@@ -258,14 +260,13 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values 
 | autoscaling.minReplicas | int | `1` | The minimum number of replicas in case autoscaling is enabled. |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | The CPU utilization in percentage as a target for autoscaling. |
 | config.rpcAddress | string | `"http://quorum-validator1.quorum:8545"` | URL of the Quorum node |
-| config.smartContractAbi | string | `""` | Abi (interface) of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAbiKey' |
+| config.smartContractAbi | string | `"[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"str\",\"type\":\"bool\"}],\"name\":\"BoolResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes1\",\"name\":\"str\",\"type\":\"bytes1\"}],\"name\":\"Bytes1Result\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"str\",\"type\":\"bytes32\"}],\"name\":\"Bytes32Result\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"statusCode\",\"type\":\"uint256\"}],\"name\":\"InvokeStatus\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"str\",\"type\":\"bytes\"}],\"name\":\"Result\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string[2]\",\"name\":\"str\",\"type\":\"string[2]\"}],\"name\":\"StringArray2Result\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string[]\",\"name\":\"str\",\"type\":\"string[]\"}],\"name\":\"StringArrayResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"str\",\"type\":\"string\"}],\"name\":\"StringResult\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"str\",\"type\":\"uint256\"}],\"name\":\"UIntResult\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"anchorId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"newAnchorValue\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"}],\"name\":\"createAnchor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"anchorId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"newAnchorValue\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"}],\"name\":\"appendAnchor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"anchorId\",\"type\":\"string\"}],\"name\":\"getAllVersions\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"anchorId\",\"type\":\"string\"}],\"name\":\"getLastVersion\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"string[]\",\"name\":\"anchors\",\"type\":\"string[]\"}],\"name\":\"createOrUpdateMultipleAnchors\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"from\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxSize\",\"type\":\"uint256\"}],\"name\":\"dumpAnchors\",\"outputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"anchorId\",\"type\":\"string\"},{\"internalType\":\"string[]\",\"name\":\"anchorValues\",\"type\":\"string[]\"}],\"internalType\":\"struct Anchoring.Anchor[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalNumberOfAnchors\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"}],\"name\":\"recover\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"` | Abi (interface) of the Smart Contract. Must match the Abi of the deployed Smartcontract. Current default value compatible to epi application v1.1.x or higher Taken from https://github.com/PharmaLedger-IMI/eth-adapter/blob/2cc324b54c55e7b0019d46f2202740dcfa54444a/EthAdapter/k8s/ethadapter-configmap.yaml#L8 |
 | config.smartContractAddress | string | `""` | Address of the Smart Contract. If not set/empty, tries to get value from ConfigMap '.config.smartContractConfigMapName' with key '.config.smartContractConfigMapAddressKey' |
-| config.smartContractConfigMapAbiKey | string | `"abi"` | The key of the Abi in the existing ConfigMap in case smartContractAbi is not explictly defined |
-| config.smartContractConfigMapAddressKey | string | `"address"` | The key of the Address in the existing ConfigMap in case smartContractAddress is not explictly defined |
-| config.smartContractConfigMapName | string | `"smartcontract-anchoring-info"` | The name of the existing ConfigMap to look for in case values are not explictly defined via smartContractAddress and smartContractAbi |
+| config.smartContractConfigMapAddressKey | string | `"address"` | The key of the SmartContract Address in the existing ConfigMap in case 'smartContractAddress' is not explictly defined. |
+| config.smartContractConfigMapName | string | `"smartcontract-anchoring-info"` | The name of the existing ConfigMap to look for in case value 'smartContractAddress' is not defined. |
 | fullnameOverride | string | `""` | fullnameOverride completely replaces the generated name. From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm) |
 | image.pullPolicy | string | `"IfNotPresent"` | Image Pull Policy |
-| image.repository | string | `"public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter"` | The repository of the container image |
+| image.repository | string | `"pharmaledger/apiadapter"` | The repository of the container image |
 | image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Secret(s) for pulling an container image from a private registry. See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) |
 | ingress.annotations | object | `{}` | Ingress annotations. For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/) For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/) For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/) For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations) |
@@ -281,10 +282,8 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.3.0 --values 
 | podSecurityContext | object | `{}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for a pod |
-| secrets.orgAccountJson | string | `""` | Org Account in JSON format.  If not set/empty and also orgAccountJsonBase64 is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey' |
-| secrets.orgAccountJsonBase64 | string | `""` | Org Account in JSON format base64 encoded.  If not set/empty and also orgAccountJson is not set/empty, tries to get value from Secret '.secrets.smartContractSecretName' with key '.secrets.smartContractSecretOrgAccountJsonKey' |
-| secrets.smartContractSecretName | string | `"smartcontract-org-account"` | The name of the existing Secret to look for in case orgAccountJson or orgAccountJsonBase64 is not explictly set |
-| secrets.smartContractSecretOrgAccountJsonKey | string | `"infoJson"` | The key of Org Account Json in the existing Secret in case orgAccountJson or orgAccountJsonBase64 is not explictly set |
+| secrets.orgAccountJson | string | `"{\"address\": \"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784\", \"privateKey\": \"0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5\"}"` | Org Account in JSON format.  This value must be set or orgAccountJsonBase64 Default value for sandbox environment with prefined ETH Account and its validator key for validator1 |
+| secrets.orgAccountJsonBase64 | string | `""` | Org Account in JSON format base64 encoded.  This value must be set or orgAccountJson |
 | securityContext | object | `{}` | Security Context for the container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
 | service.port | int | `3000` | Port where the service will be exposed |

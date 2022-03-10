@@ -13,7 +13,7 @@ OrgAccount and anchoring info of the Smartcontract will be stored in a Kubernete
 ## Changelog
 
 - From 0.2.x to 0.3.x
-  - To be used for epi application v1.x or higher. Not compatible with epi v1.0.x !
+  - To be used for epi application v1.1.x or higher. Not compatible with epi v1.0.x !
   - Now using `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`).
   - An ETH Account will *NOT* be created anymore. It is required that you own an ETH account in advance.
   - Therefore no secret with OrgAccount data will be created anymore.
