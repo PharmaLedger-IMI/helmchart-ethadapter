@@ -21,6 +21,7 @@ by reading Smart Contract address from ConfigMap installed by helm chart *smartc
 
 - From 0.3.x to 0.4.x
   - New SmartContract Abi set as default value ready for epi application v1.1.x or higher.
+  - Value `secrets.orgAccountJson` is always required. The OrgAccount cannot be read from helm chart *smartcontract* anymore.
 
 - From 0.2.x to 0.3.x
   - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.

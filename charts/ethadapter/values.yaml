@@ -81,7 +81,7 @@ config:
 secrets:
   # -- Org Account in JSON format.
   # This value must be set or orgAccountJsonBase64
-  # For testing purpose and sandbox environment in combination with helm chart 'standalone-quorum' use this value '{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}' 
+  # For testing purpose and sandbox environment in combination with helm chart 'standalone-quorum' use this value '{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}'
   orgAccountJson: ""
   # -- Org Account in JSON format base64 encoded.
   # This value must be set or orgAccountJson
