@@ -65,6 +65,12 @@ helm delete smartcontract \
 
 ```
 
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| tgip-work |  | https://github.com/tgip-work |
+
 ## Values
 
 | Key | Type | Default | Description |
