@@ -12,7 +12,7 @@ A Helm chart for Pharma Ledger Ethereum Adapter Service
   - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
   - Smart Contract Abi - default value ready for epi application v1.1.x or higher
   <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}` - default value ready for Sandbox environment and standalone-quorum.
+  - Org Account JSON - The confidential private key and address in JSON format, e.g. for Sandbox environment and standalone-quorum `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
 
 **NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself
 by reading Smart Contract address from ConfigMap installed by helm chart *smartcontract*.
@@ -20,7 +20,7 @@ by reading Smart Contract address from ConfigMap installed by helm chart *smartc
 ## Changelog
 
 - From 0.3.x to 0.4.x
-  - Default values ready for epi application v1.1.x or higher.
+  - New SmartContract Abi set as default value ready for epi application v1.1.x or higher.
 
 - From 0.2.x to 0.3.x
   - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
@@ -51,11 +51,12 @@ This is to prevent exposing the service to the internet by accident!**
 
 ### Sandbox installation - Auto-configure by existing ConfigMap/Secret
 
-To install the chart with the release name `ethadapter` in namespace `ethadapter` and read configuration values from pre-existing ConfigMap/Secret created by helm chart *smartcontract*.
+To install the chart with the release name `ethadapter` in namespace `ethadapter` and read SmartContract address from pre-existing ConfigMap created by helm chart *smartcontract*.
 
 ```bash
 helm upgrade --install ethadapter ph-ethadapter/ethadapter --version=0.4.0 \
   --install \
+  --set secrets.orgAccountJson="\{\"address\": \"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784\"\, \"privateKey\": \"0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5\"\}"
   --wait \
   --timeout 10m
 
@@ -282,7 +283,7 @@ helm template test-ethadapter ph-ethadapter/ethadapter --version=0.4.0 --values 
 | podSecurityContext | object | `{}` | Security Context for the pod. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) |
 | replicaCount | int | `1` | The number of replicas if autoscaling is false |
 | resources | object | `{}` | Resource constraints for a pod |
-| secrets.orgAccountJson | string | `"{\"address\": \"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784\", \"privateKey\": \"0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5\"}"` | Org Account in JSON format. This value must be set or orgAccountJsonBase64 Default value for sandbox environment with prefined ETH Account and its validator key for validator1 |
+| secrets.orgAccountJson | string | `""` | Org Account in JSON format. This value must be set or orgAccountJsonBase64 For testing purpose and sandbox environment in combination with helm chart 'standalone-quorum' use this value '{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}'  |
 | secrets.orgAccountJsonBase64 | string | `""` | Org Account in JSON format base64 encoded. This value must be set or orgAccountJson |
 | securityContext | object | `{}` | Security Context for the container. See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) |
 | service.annotations | object | `{}` | Annotations for the service. See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws) For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations) |
