@@ -50,9 +50,9 @@ This is to prevent exposing the service to the internet by accident!**
 
 **Note:** It is recommended to put non-sensitive configuration values in an configuration file and pass sensitive/secret values via commandline.
 
-### Sandbox installation - Auto-configure by existing ConfigMap/Secret
+### Sandbox installation - Auto-configure Smart Contract address
 
-To install the chart with the release name `ethadapter` in namespace `ethadapter` and read SmartContract address from pre-existing ConfigMap created by helm chart *smartcontract*.
+Install the chart with the release name `ethadapter` in namespace `ethadapter` and read SmartContract address from pre-existing ConfigMap created by helm chart *smartcontract*.
 
 ```bash
 helm upgrade --install ethadapter ph-ethadapter/ethadapter --version={{ template "chart.version" . }} \
