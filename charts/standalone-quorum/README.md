@@ -22,9 +22,9 @@ The copy is being used to package the helm chart and publish it in the repo.
     | Node | ETH account | private key | Password for unlocking account |
     |-------------------------|:-----------:|:-------:|:------------------------------------:|
     | `quorum-validator1` | `0xb5ced4530d6ccbb31b2b542fd9b4558b52296784` | `0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5` | `Password` |<!-- # pragma: allowlist secret -->
-    | `quorum-validator2` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
-    | `quorum-validator3` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
-    | `quorum-validator4` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator2` | `0x38134ca33fc3f82f91dae4b5e8bd94aff4a97ff5` | `0x8b360f3e5e4a83b71b2783c61c3026e0f1f0cd077a96b476f002f698a844f877` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator3` | `0x40ba4082b30de5f17c3be9ed1b179e2af6533293` | `0xf4bd1e7d8c12ae9f23e56cbc79bb39aec69801ed66606e6e18186c2dd7cce731` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator4` | `0x4048383303330169b536650fd54b9c742d6112bc` | `0xba3351cf7d27ff96dc23f9b8e1669688d94cc71957e33acaa1d7e07db740e6da` | `Password` |<!-- # pragma: allowlist secret -->
 
 - From 0.1.x to 0.2.x
     - The 3 Member nodes (consisting of validator node and transaction manager Tessera) will not be deployed by default anymore.
