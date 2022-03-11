@@ -72,6 +72,13 @@ Run `helm upgrade --helm` for full list of options.
 
 Generate 4 address/privatekey pairs and their keyfiles - see [generator.sh](generator.sh)
 
+Links:
+- [https://geth.ethereum.org/docs/interface/managing-your-accounts](https://geth.ethereum.org/docs/interface/managing-your-accounts)
+- [https://consensys.net/docs/goquorum/en/latest/configure-and-manage/configure/genesis-file/contracts-in-genesis/](https://consensys.net/docs/goquorum/en/latest/configure-and-manage/configure/genesis-file/contracts-in-genesis/)
+- [https://github.com/ethereum/go-ethereum/issues/14831](https://github.com/ethereum/go-ethereum/issues/14831)
+- [https://piyopiyo.medium.com/how-to-generate-ethereum-private-key-and-address-in-local-offline-environment-90294308593c](https://piyopiyo.medium.com/how-to-generate-ethereum-private-key-and-address-in-local-offline-environment-90294308593c)
+- [https://stackoverflow.com/questions/66840794/ethereumjs-wallet-generate-is-not-a-function-error](https://stackoverflow.com/questions/66840794/ethereumjs-wallet-generate-is-not-a-function-error)
+
 Output looks like this:
 
 ```text
