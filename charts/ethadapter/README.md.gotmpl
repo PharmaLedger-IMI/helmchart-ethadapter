@@ -7,21 +7,23 @@
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
-- These mandatory configuration values:
-  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545` - **Note:** Default value ready for standalone quorum/sandbox
-  - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91` - **Note:** If not provided will be read from helm chart *smartcontract*
-  - Smart Contract Abi - **Note:** Default value ready for epi application v1.1.x or higher
-  <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format - **Noe:** For Sandbox environment and standalone-quorum use `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
+- These values:
 
-**NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself 
-by reading Smart Contract address from ConfigMap installed by helm chart *smartcontract*.
+  | Configuration<br/>value | Description | Sandbox | Non-Sandbox<br/>connected blockchain |
+  |-------------------------|:-----------:|:-------:|:------------------------------------:|
+  | `config.rpcAddress`     | Address of<br/>Quorum node | **Not required** if helm chart<br/>*standalone-quorum* is used | **Required** |
+  | `config.smartContractAddress` | Anchor address of<br/>Smart Contract | **Not required** if helm chart<br/>*smartcontract* is used<br/>(autoconfiguration) | **Required** |
+  | `config.smartContractAbi` | Smart Contract<br>definition | **Not required**<br/>Default value fits<br/>for epi application >= v1.1 | **Not required**<br/>Default value fits<br/>for epi application >= v1.1 |
+  | `secrets.orgAccountJson`<br/>**or**<br/>`secrets.orgAccountJsonBase64` | ETH account and<br/>private key | **Required** | **Required** |
+
+  <!-- # pragma: allowlist nextline secret -->
+  **Note about ETH account:** For Sandbox environment (helm chart *standalone-quorum*) use `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
 
 ## Changelog
 
 - From 0.3.x to 0.4.x
   - New SmartContract Abi set as default value ready for epi application v1.1.x or higher.
-  - Value `secrets.orgAccountJson` is always required. The OrgAccount cannot be read from helm chart *smartcontract* anymore.
+  - Either value `secrets.orgAccountJson` or `secrets.orgAccountJsonBase64` is always required. The OrgAccount data is not be provided by helm chart *smartcontract* anymore.
 
 - From 0.2.x to 0.3.x
   - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
@@ -35,8 +37,9 @@ by reading Smart Contract address from ConfigMap installed by helm chart *smartc
 ## How it works
 
 This helm chart creates an own ConfigMap and Secret with required configuration values.
-The ConfigMap is being used to store a) address of Quorum Node, b) address of Smart Contract anchoring and c) Abi of the SmartContract.
-The Secret contains the ETH Account and its private key.
+
+- The ConfigMap is being used to store a) address of Quorum Node, b) address of Smart Contract anchoring and c) Abi of the SmartContract.
+- The Secret contains the ETH Account and its private key.
 
 In case you do not explictly provide `config.smartContractAddress` this value will be read from pre-existing ConfigMap (provided by helm chart *smartcontract*) in context of the user executing helm.
 
