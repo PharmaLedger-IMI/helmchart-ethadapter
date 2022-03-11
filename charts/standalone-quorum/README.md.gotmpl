@@ -16,6 +16,16 @@ The copy is being used to package the helm chart and publish it in the repo.
 
 ## Changelog
 
+- From 0.2.x to 0.3.x
+  - The predefined ETH accounts for the 4 validator nodes have changed:
+
+    | Node | ETH account | private key | Password for unlocking account |
+    |-------------------------|:-----------:|:-------:|:------------------------------------:|
+    | `quorum-validator1` | `0xb5ced4530d6ccbb31b2b542fd9b4558b52296784` | `0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator2` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator3` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator4` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+
 - From 0.1.x to 0.2.x
     - The 3 Member nodes (consisting of validator node and transaction manager Tessera) will not be deployed by default anymore.
     You can re-enable deployment of 3 members nodes by setting `config.members.enabled` to `true`.
@@ -57,6 +67,10 @@ Run `helm upgrade --helm` for full list of options.
         --set config.storage.type=pvc
         
     ```
+
+### How to generate ETH accounts, private keys and keyfiles
+
+Generate 4 address/privatekey pairs and their keyfiles - see [generator.sh](generator.sh)
 
 {{ template "chart.maintainersSection" . }}
 

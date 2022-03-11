@@ -1,6 +1,6 @@
 # standalone-quorum
 
-![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21.10.2](https://img.shields.io/badge/AppVersion-21.10.2-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21.10.2](https://img.shields.io/badge/AppVersion-21.10.2-informational?style=flat-square)
 
 A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
 
@@ -15,6 +15,16 @@ This is an adapted copy of [https://github.com/ConsenSys/quorum-kubernetes/tree/
 The copy is being used to package the helm chart and publish it in the repo.
 
 ## Changelog
+
+- From 0.2.x to 0.3.x
+  - The predefined ETH accounts for the 4 validator nodes have changed:
+
+    | Node | ETH account | private key | Password for unlocking account |
+    |-------------------------|:-----------:|:-------:|:------------------------------------:|
+    | `quorum-validator1` | `0xb5ced4530d6ccbb31b2b542fd9b4558b52296784` | `0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator2` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator3` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
+    | `quorum-validator4` | `` | `` | `Password` |<!-- # pragma: allowlist secret -->
 
 - From 0.1.x to 0.2.x
     - The 3 Member nodes (consisting of validator node and transaction manager Tessera) will not be deployed by default anymore.
@@ -32,7 +42,7 @@ This helm chart installs the Playground environment for a Quorum Cluster with st
 Install to namespace `quorum`
 
 ```bash
-helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.2.1 \
+helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.0 \
     --install \
     --namespace=quorum --create-namespace \
     --set config.storage.size="10Gi" \
@@ -49,7 +59,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.2.1 \
+    helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.0 \
         --install \
         --wait --timeout=1200s \
         --namespace=quorum --create-namespace \
@@ -57,6 +67,10 @@ Run `helm upgrade --helm` for full list of options.
         --set config.storage.type=pvc
        
     ```
+
+### How to generate ETH accounts, private keys and keyfiles
+
+Generate 4 address/privatekey pairs and their keyfiles - see [generator.sh](generator.sh)
 
 ## Values
 
