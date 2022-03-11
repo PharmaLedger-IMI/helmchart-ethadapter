@@ -41,43 +41,59 @@ Abstract Overview
 
 ![Abstract Overview](docs/sandbox_abstract_overview.drawio.png)
 
+## Compatibility Matrix
+
+| epi **application version** 	| epi<br/>helm chart version 	| ethadapter<br/>helm chart  | helm chart ethadapter | helm chart epi |
+|---------------------------|:---------------:	|:----------------:	|:----------:	|:------------:	|
+| **v1.1.1**       	|      0.8.1      	|  2.1.2<br>2.1.1  	|   > 1.7.1  	|  14.09.2021  	|
+| **v1.1.0**       	|      0.8.1      	|  2.1.2<br>2.1.1  	|   > 1.7.1  	|  14.09.2021  	|
+| **v1.0.2**       	|      1.0.0      	|  2.1.2<br>2.1.1  	|   > 1.7.1  	|  28.10.2021  	|
+| **v1.0.1**     	|      1.0.1      	|  2.1.2<br>2.1.1  	|   > 1.7.1  	|  17.01.2022  	|
+
 ### Install Quorum network, Smart Contract, ethadapter and epi application
 
 ```bash
 echo "Deploying sandbox quorum"
-helm upgrade --install quorum ph-ethadapter/standalone-quorum \
+helm upgrade --install quorum . \
     --namespace=quorum --create-namespace \
-    --version=0.2.1 \
     --set config.storage.size="10Gi" \
-    --set config.storage.type=pvc \
-    --wait --wait-for-jobs \
-    --timeout 10m
+    --set config.storage.type=pvc
 
 echo ""
 echo "Deploying SmartContract"
-helm upgrade --install smartcontract ph-ethadapter/smartcontract \
-    --namespace=ethadapter --create-namespace \
-    --version=0.2.0 \
+helm upgrade --install smartcontract . \
+    --namespace=ethadapter --create-namespace
     --wait --wait-for-jobs \
     --timeout 10m
 
 echo ""
 echo "Deploying EthAdapter"
 echo "Note: It will use values from ConfigMap and Secret created by SmartContract deployment"
-helm upgrade --install ethadapter ph-ethadapter/ethadapter \
-    --namespace=ethadapter --create-namespace \
-    --version=0.3.0 \
-    --wait --wait-for-jobs \
-    --timeout 10m
+helm upgrade --install ethadapter . \
+    --namespace=ethadapter --create-namespace
 
 echo ""
 echo "Deploying epi application"
 helm upgrade --install epi ph-ethadapter/epi \
-    --namespace=epi --create-namespace \
+    --namespace=epi-1-0-2 --create-namespace \
     --version=0.2.0 \
     --wait --wait-for-jobs \
     --timeout 10m \
-    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000
+    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000 \
+    --set image.repository="535161841476.dkr.ecr.eu-central-1.amazonaws.com/torsten-pharmaledger-epi" \
+    --set image.tag="v1.0.2-node-16-alpine-builder" \
+    --set podSecurityContext.fsGroup=1000 \
+    --set securityContext.runAsNonRoot=true \
+    --set securityContext.runAsUser=1000 \
+    --set securityContext.allowPrivilegeEscalation=false
+
+helm upgrade --install epi ph-ethadapter/epi \
+    --namespace=epi --create-namespace \
+    --version=0.2.0 \
+    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000 \
+    --set image.repository="535161841476.dkr.ecr.eu-central-1.amazonaws.com/torsten-pharmaledger-epi" \
+    --set image.tag="v1.1.1-original"
+
 
 ```
 
