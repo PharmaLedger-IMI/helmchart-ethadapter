@@ -72,6 +72,30 @@ Run `helm upgrade --helm` for full list of options.
 
 Generate 4 address/privatekey pairs and their keyfiles - see [generator.sh](generator.sh)
 
+Output looks like this:
+
+```text
+Private Key 1
+401f89555e79180e677b9065935750f6f462a049e621c2073595d3d0a93a5df5
+Keyfile 1
+{"address":"67d8f35e9b652c5c7493000eb840ff6fd6210604","crypto":{"cipher":"aes-128-ctr","ciphertext":"894f4f188567c9b65c0a791ba4b6118d19d794b550840bb250cc1fce78dcdf30","cipherparams":{"iv":"3b9e1d0d23ee03aefa330e0591faf2a8"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"352e15e182d3f95bc8940bc68f29fe378cdb0e27635f296a767f317a8ae46b2b"},"mac":"eaef10f1f405fb7a8499e0dd52698dc47e0fe54a647fc94b0d07fed8b67e9931"},"id":"4bf8c4d4-273e-4587-b835-c2026a234206","version":3}
+
+Private Key 2
+6bc4ccaebc9ac083f4e7725ab1b7799da0c24f1c51b164125644b61a9cb33fc8
+Keyfile 2
+{"address":"81941b1ab7724ddeb3fca1bc528aa73e7dc1ebfd","crypto":{"cipher":"aes-128-ctr","ciphertext":"e4aae176092dc9ffa2ebfcbfc6aaa47ed0130c1d650da651fe2206be66a6865d","cipherparams":{"iv":"f7ca70dea77838f044471a3c1476917f"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"d42760325d991ec651e6c61137bf23936f831ed5aa2d3a31895a6c9c9c361821"},"mac":"38d8b458dfac356070e4a4066986abe1c1f2dd9b9911b499c52fe4fc15b77b16"},"id":"e7279674-f593-4e90-944f-3049baf2faca","version":3}
+
+Private Key 3
+e0d2ae322a12bd90f30475cd1de931dca0937ee164d178bf3eb5d92e881e110c
+Keyfile 3
+{"address":"fa509f4c52a437bb56e943269168c85e80c94172","crypto":{"cipher":"aes-128-ctr","ciphertext":"9171888843f26d84c3bc6de746e0e060123eca26733f5775d88389b5a4da066d","cipherparams":{"iv":"163b18144834aec7727144efd78c47a3"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"fb027943c64a1be55c82d9b35efae31dc60916047782bdada6fc773050f6f8ac"},"mac":"27db1ae07848d41d58208453f477f0c154c6e4207230d4d82138f324bbe0bc74"},"id":"167faad7-d485-496e-8618-9efb89e9436c","version":3}
+
+Private Key 4
+2770c96f3d88d213dd583f567a728c7c99a43f21f89388ebe11a4769f0a0bb2a
+Keyfile 4
+{"address":"833e8f2e12d06b991cc5af64a091a7512fd0a7cd","crypto":{"cipher":"aes-128-ctr","ciphertext":"1532914724edada2535a5c27851918922b360db843f36b82f56fb7312201acc1","cipherparams":{"iv":"9304276b5ce8d7af919adc88ea322fd2"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f6fc13df8e37eec123c9cfb72319d896444e6f12b0784cc81af17d3977e40e14"},"mac":"c657bb82eac69c6956f9e3094b2dc46450f5a4e5ffe2b8e83e9c51acf425bce4"},"id":"c00ee244-df3b-4f5c-b043-334d91fbbfc1","version":3}
+```
+
 {{ template "chart.maintainersSection" . }}
 
 {{ template "chart.requirementsSection" . }}
