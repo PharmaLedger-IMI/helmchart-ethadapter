@@ -7,17 +7,23 @@
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
-- These mandatory configuration values:
-  - RPC Address - The URL of the quorum node, e.g. `http://quorum-node-0-rpc:8545`
-  - Smart Contract Address - The address of the smart contract, e.g. `0x1783aBc71903919382EFca91`
-  - Smart Contract Abi
-  <!-- # pragma: allowlist nextline secret -->
-  - Org Account JSON - The confidential private key and address in JSON format, e.g. `{"privateKey":"0x1234567890abcdef", "address":"0x0987654321AbCdEf"}`
+- These values:
 
-**NOTE**: On a sandbox installation (with helm chart *smartcontract* installed) this helm chart auto-configures itself 
-by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret installed by helm chhart *smartcontract*.
+  | Configuration<br/>value | Description | Sandbox | Non-Sandbox<br/>connected blockchain |
+  |-------------------------|:-----------:|:-------:|:------------------------------------:|
+  | `config.rpcAddress`     | Address of<br/>Quorum node | **Not required** if helm chart<br/>*standalone-quorum* is used | **Required** |
+  | `config.smartContractAddress` | Anchor address of<br/>Smart Contract | **Not required** if helm chart<br/>*smartcontract* is used<br/>(autoconfiguration) | **Required** |
+  | `config.smartContractAbi` | Smart Contract<br>definition | **Not required**<br/>Default value fits<br/>for epi application >= v1.1 | **Not required**<br/>Default value fits<br/>for epi application >= v1.1 |
+  | `secrets.orgAccountJson`<br/>**or**<br/>`secrets.orgAccountJsonBase64` | ETH account and<br/>private key | **Required** | **Required** |
+
+  <!-- # pragma: allowlist nextline secret -->
+  **Note about ETH account:** For Sandbox environment (helm chart *standalone-quorum*) use `{"address": "0xb5ced4530d6ccbb31b2b542fd9b4558b52296784", "privateKey": "0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5"}`
 
 ## Changelog
+
+- From 0.3.x to 0.4.x
+  - New SmartContract Abi set as default value ready for epi application v1.1.x or higher.
+  - Either value `secrets.orgAccountJson` or `secrets.orgAccountJsonBase64` is always required. The OrgAccount data is not be provided by helm chart *smartcontract* anymore.
 
 - From 0.2.x to 0.3.x
   - Value `config.rpcAddress` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
@@ -31,8 +37,11 @@ by reading Smart Contract Abi and address and Org Account from ConfigMap/Secret 
 ## How it works
 
 This helm chart creates an own ConfigMap and Secret with required configuration values.
-In case you do not explictly provide `config.smartContractAddress`, `config.smartContractAbi` and `secrets.orgAccountJson` (or `secrets.orgAccountJsonBase64`), 
-these values will be read from pre-existing ConfigMap/Secret (provided by helm chart *smartcontract*) in context of the user executing helm.
+
+- The ConfigMap is being used to store a) address of Quorum Node, b) address of Smart Contract anchoring and c) Abi of the SmartContract.
+- The Secret contains the ETH Account and its private key.
+
+In case you do not explictly provide `config.smartContractAddress` this value will be read from pre-existing ConfigMap (provided by helm chart *smartcontract*) in context of the user executing helm.
 
 1. The Kubernetes Deployment triggers creation of a ReplicaSet which schedules the pod(s).
 2. A Service exposes the pod. **By default, this helm chart installs the Ethereum Adapter Service at an internal ClusterIP Service listening at port 3000.
@@ -44,13 +53,14 @@ This is to prevent exposing the service to the internet by accident!**
 
 **Note:** It is recommended to put non-sensitive configuration values in an configuration file and pass sensitive/secret values via commandline.
 
-### Sandbox installation - Auto-configure by existing ConfigMap/Secret
+### Sandbox installation - Auto-configure Smart Contract address
 
-To install the chart with the release name `ethadapter` in namespace `ethadapter` and read configuration values from pre-existing ConfigMap/Secret created by helm chart *smartcontract*.
+Install the chart with the release name `ethadapter` in namespace `ethadapter` and read SmartContract address from pre-existing ConfigMap created by helm chart *smartcontract*.
 
 ```bash
 helm upgrade --install ethadapter ph-ethadapter/ethadapter --version={{ template "chart.version" . }} \
   --install \
+  --set secrets.orgAccountJson="\{\"address\": \"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784\"\, \"privateKey\": \"0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5\"\}"
   --wait \
   --timeout 10m
 
@@ -64,7 +74,6 @@ helm upgrade --install ethadapter ph-ethadapter/ethadapter --version={{ template
     config:
       rpcAddress: "rpcAddress_value"
       smartContractAddress: "smartContractAddress_value"
-      smartContractAbi: "smartContractAbi_value"
     ```
 
 2. Install via helm to namespace `ethadapter` either by passing sensitive *Org Account JSON* value in JSON format as escaped string
@@ -74,7 +83,7 @@ helm upgrade --install ethadapter ph-ethadapter/ethadapter --version={{ template
         --wait \
         --timeout 10m \
         --values my-config.yaml \
-        --set-string secrets.orgAccountJson="\{ \"key1\": \"value1\" \, \"key2\": \"value2\" \}"
+        --set-string secrets.orgAccountJson="\{ \"address\": \"0xabcdef1234567890\" \, \"privateKey\": \"0x1234567890abcdef\" \}"
 
     ```
 
@@ -108,7 +117,6 @@ service:
 config:
   rpcAddress: "rpcAddress_value"
   smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
 ```
 
 There are more configuration options available like customizing the port and configuring the Load Balancer via annotations (e.g. for configuring SSL Listener).
@@ -182,7 +190,6 @@ ingress:
 config:
   rpcAddress: "rpcAddress_value"
   smartContractAddress: "smartContractAddress_value"
-  smartContractAbi: "smartContractAbi_value"
 ```
 
 ## Uninstalling the Chart

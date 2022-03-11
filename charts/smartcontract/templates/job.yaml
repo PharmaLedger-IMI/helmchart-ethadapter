@@ -28,19 +28,17 @@ spec:
           - -c
         args:
           - |
-          
-            cd /template
-            
-            echo "npm install"
-            npm install
-            
-            echo ""
-            echo "Creating Org Account"
-            node ./stages/OrgAcc/createOrgAcc.js
+            set -e
+            echo "truffle migrate ..."
+            truffle migrate
+            echo "truffle migrate done"
 
             echo ""
-            echo "Anchoring SmartContract at {{ .Values.config.quorumNodeUrl }}"
-            node ./stages/deployAnchoringSC/deployAnchoringSC.js
+            echo "Copying SmartContract address to /container-shared-data ..."
+            cp ./external/smartcontractaddress.txt /container-shared-data/AnchoringAddress
+
+            echo "Extracting Abi to /container-shared-data ..."
+            node ./getAbi.js
 
             echo ""
             echo "Show content of folder /container-shared-data"
@@ -49,22 +47,18 @@ spec:
             echo ""
             echo "Exiting init container"
             exit 0
+        env:
+          - name: PORT
+            value: {{ .Values.config.quorumNodePort | quote }}
+          - name: RPC_HOST
+            value: {{ .Values.config.quorumNodeAddress | quote }}
+          - name: ACCOUNT
+            value: {{ .Values.config.account | quote }}
         volumeMounts:
+            # we need to mount helper code file(s)
           - name: code
-            mountPath: /template/package.json
-            subPath: package.json
-          - name: code
-            mountPath: /template/package-lock.json
-            subPath: package-lock.json
-          - name: code
-            mountPath: /template/stages/OrgAcc/createOrgAcc.js
-            subPath: createOrgAcc.js
-          - name: code
-            mountPath: /template/stages/deployAnchoringSC/deployAnchoringSC.js
-            subPath: deployAnchoringSC.js
-          - name: code
-            mountPath: /template/anchoring-sc/anchoringSC.sol
-            subPath: anchoringSC.sol
+            mountPath: /usr/node/app/getAbi.js
+            subPath: getAbi.js
             # We mount a temporary volume in order to hand over data from init to main container
           - name: container-shared-data
             mountPath: /container-shared-data
@@ -76,13 +70,11 @@ spec:
           - -c
         args:
           - |
-            
-            echo "=======> Writing or updating Secret {{ include "smartcontract.secretNameOrgAccount" . }} ..."
-            kubectl create secret generic {{ include "smartcontract.secretNameOrgAccount" . }} --from-file=infoJson=/container-shared-data/orgAccInfo.json --dry-run=client -o yaml | kubectl apply -f -
-
-            echo ""
             echo "=======> Writing or updating ConfigMap {{ include "smartcontract.configMapNameAnchoringInfo" . }} ..."
-            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringInfo" . }} --from-file=infoJson=/container-shared-data/anchoringSCInfo.json --from-file=abi=/container-shared-data/anchoringSCAbi.json --from-file=address=/container-shared-data/anchoringSCAddress --dry-run=client -o yaml | kubectl apply -f -
+            kubectl create configmap {{ include "smartcontract.configMapNameAnchoringInfo" . }} \
+              --from-file=abi=/container-shared-data/AnchoringAbi.json \
+              --from-file=address=/container-shared-data/AnchoringAddress \
+              --dry-run=client -o yaml | kubectl apply -f -
         volumeMounts:
           - name: container-shared-data
             mountPath: /container-shared-data

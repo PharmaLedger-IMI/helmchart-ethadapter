@@ -41,13 +41,22 @@ Abstract Overview
 
 ![Abstract Overview](docs/sandbox_abstract_overview.drawio.png)
 
+## Compatibility Matrix
+
+| epi **application version** | epi<br/>helm chart version | ethadapter<br/>helm chart | smartcontract<br/>helm chart | standalone-quorum<br/>helm chart |
+|-----------------------------|:--------------------------:|:-------------------------:|:----------------------------:|:--------------------------------:|
+| **v1.1.1**                  | 0.2.0<br/>provide image and tag | 0.4.0                | 0.3.0                        | 0.3.0 |
+| **v1.1.0**                  | 0.2.0<br/>provide image and tag | 0.4.0                | 0.3.0                        | 0.3.0 |
+| **v1.0.2**                  | 0.2.0<br/>provide image and tag | 0.3.0                | 0.2.0                        | 0.2.1 |
+| **v1.0.1**                  | 0.2.0<br/>provide image and tag | 0.3.0                | 0.2.0                        | 0.2.1 |
+
 ### Install Quorum network, Smart Contract, ethadapter and epi application
 
 ```bash
 echo "Deploying sandbox quorum"
 helm upgrade --install quorum ph-ethadapter/standalone-quorum \
     --namespace=quorum --create-namespace \
-    --version=0.2.1 \
+    --version=0.3.0 \
     --set config.storage.size="10Gi" \
     --set config.storage.type=pvc \
     --wait --wait-for-jobs \
@@ -57,16 +66,17 @@ echo ""
 echo "Deploying SmartContract"
 helm upgrade --install smartcontract ph-ethadapter/smartcontract \
     --namespace=ethadapter --create-namespace \
-    --version=0.2.0 \
+    --version=0.3.0 \
     --wait --wait-for-jobs \
     --timeout 10m
 
 echo ""
 echo "Deploying EthAdapter"
-echo "Note: It will use values from ConfigMap and Secret created by SmartContract deployment"
+echo "Note: It will import Smart Contract address from ConfigMap created by helm chart smartcontract"
 helm upgrade --install ethadapter ph-ethadapter/ethadapter \
     --namespace=ethadapter --create-namespace \
-    --version=0.3.0 \
+    --version=0.4.0 \
+    --set secrets.orgAccountJson="\{\"address\": \"0xb5ced4530d6ccbb31b2b542fd9b4558b52296784\"\, \"privateKey\": \"0x6b93a268f68239d321981125ecf24488920c6b3d900043d56fef66adb776abd5\"\}" \
     --wait --wait-for-jobs \
     --timeout 10m
 
@@ -77,7 +87,9 @@ helm upgrade --install epi ph-ethadapter/epi \
     --version=0.2.0 \
     --wait --wait-for-jobs \
     --timeout 10m \
-    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000
+    --set config.ethadapterUrl=http://ethadapter.ethadapter:3000 \
+    --set image.repository="YOUR REPOSITORY FOR EPI APPLICATION" \
+    --set image.tag="YOUR TAG FOR EPI APPLICATION"
 
 ```
 

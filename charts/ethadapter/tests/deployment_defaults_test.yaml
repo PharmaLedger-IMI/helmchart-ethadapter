@@ -23,7 +23,7 @@ tests:
       - template: deployment.yaml
         equal:
           path: spec.template.spec.containers[0].image
-          value: public.ecr.aws/n4q1q0z2/pharmaledger-ethadapter:1.1
+          value: pharmaledger/apiadapter:latest
       - template: deployment.yaml
         equal:
           path: spec.template.spec.containers[0].imagePullPolicy

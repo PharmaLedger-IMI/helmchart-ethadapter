@@ -7,9 +7,22 @@
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
-- URL of the Quorum node to communicate with in order to deploy the smart contract - See config parameter `config.quorumNodeUrl`
+- These values:
+
+  | Configuration<br/>value | Description | Sandbox | Non-Sandbox<br/>connected blockchain |
+  |-------------------------|:-----------:|:-------:|:------------------------------------:|
+  | `config.quorumNodeAddress`<br/>and `config.quorumNodePort` | Address of<br/>Quorum node | **Not required**<br/>Defaults to first node of<br/>helm chart *standalone-quorum* | **Required** |
+  | `config.account` | ETH account address<br/>of preexisting and unlocked account. | **Not required**<br/>Defaults to an account provided<br/>by helm chart *standalone-quorum* | **Required** |
 
 ## Changelog
+
+- From 0.2.x to 0.3.x
+  - Uses `pharmaledger/anchor_smart:latest` image for SmartContract anchoring (`image.repository` and `image.tag`) which is compatible to epi application v1.1.x or higher. Not compatible with epi v1.0.x !
+  - An preexisting ETH Account that you own needs must be provided. A new ETH account will *NOT* be created anymore.
+  - Therefore no secret with OrgAccount data will be created anymore.
+  - `config.quorumNodeUrl` has been replaced by `config.quorumNodeAddress` and `config.quorumNodePort`.
+  - `config.account` defaults to an ETH account created by helm chart *standalone-quorum*.
+  - `config.anchoringSC` has been removed. The SmartContract definition is now part of the container image.
 
 - From 0.1.x to 0.2.x
   - Value `config.quorumNodeUrl` has changed from `http://quorum-member1.quorum:8545` to `http://quorum-validator1.quorum:8545`.
@@ -23,16 +36,18 @@
 ## How it works
 
 1. A Kubernetes Job will be deployed which triggers scheduling of a Pod
-2. The Pod generates an *OrgAccount* and anchors the SmartContract on the Quorum Blockchain.
-3. The OrgAccount data will be stored in a Kubernetes Secret and the Smart Contract Anchoring Info (e.g. address) will being stored in a Kubernetes ConfigMap.
+2. The Pod compiles the SmartContract and anchors it with the configure ETH account on the Quorum Blockchain.
+3. Then the address and Abi of the SmartContract will be stored in a Kubernetes ConfigMap.
 
 ![How it works](./docs/smartcontract.drawio.png)
 
-Note: Persisting these values in Kubernetes resources (Secret and ConfigMap) enables auto-configuration of *ethadapter* on a Sandbox environment.
+Note: Persisting these values in Kubernetes ConfigMap enables passing values and easier configuration of *ethadapter* on a Sandbox environment.
 
 ## Installing the Chart
 
-To install the chart with the release name `smartcontract` in namespace `ethadapter`:
+### Sandbox installation
+
+**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise *ethadapter* cannot auto-configure itself by reading values from Secret and ConfigMap.
 
 ```bash
 helm upgrade --install smartcontract ph-ethadapter/smartcontract \
@@ -43,7 +58,20 @@ helm upgrade --install smartcontract ph-ethadapter/smartcontract \
 
 ```
 
-**IMPORTANT** On a sandbox environment, install into the same namespace as *ethadapter* (usually namespace `ethadapter`). Otherwise *ethadapter* cannot auto-configure itself by reading values from Secret and ConfigMap.
+### Non-Sandbox installation
+
+**Note:** An installation on non-Sandbox is usually not required as the SmartContract is already deployed on connected Blockchain network.
+
+```bash
+helm upgrade --install smartcontract ph-ethadapter/smartcontract \
+  --version={{ template "chart.version" . }} \
+  --namespace=ethadapter --create-namespace \
+  --wait --wait-for-jobs \
+  --timeout 10m \
+  --set config.quorumNodeAddress="mynode.company.com" \
+  --set config.quorumNodePort=5432 \
+  --set config.account="0x1234567890abcdef"
+```
 
 ## Uninstalling the Chart
 
