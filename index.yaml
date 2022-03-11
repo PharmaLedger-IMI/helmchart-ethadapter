@@ -63,6 +63,20 @@ entries:
     version: 0.1.0
   ethadapter:
   - apiVersion: v2
+    appVersion: latest
+    created: "2022-03-11T12:35:06.370222419Z"
+    description: A Helm chart for Pharma Ledger Ethereum Adapter Service
+    digest: 5b38ab366efd978742f695a8cab302622c24df083b6b0aa6ede730bd17a27e64
+    icon: https://avatars.githubusercontent.com/u/60230259?s=200&v=4
+    maintainers:
+    - name: tgip-work
+      url: https://github.com/tgip-work
+    name: ethadapter
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/ethadapter-0.4.0/ethadapter-0.4.0.tgz
+    version: 0.4.0
+  - apiVersion: v2
     appVersion: "1.1"
     created: "2022-02-17T12:46:02.223860684Z"
     description: A Helm chart for Pharma Ledger Ethereum Adapter Service
@@ -240,6 +254,23 @@ entries:
     version: 0.0.1
   smartcontract:
   - apiVersion: v2
+    appVersion: latest
+    created: "2022-03-11T12:35:06.543759972Z"
+    description: 'A Helm chart for deploying the Smartcontract on a goquorum node
+      for a given ETH account. The anchoring info (address and Abi) of the Smartcontract
+      will be stored in a Kubernetes ConfigMap to make them usable by other components
+      running on Kubernetes. '
+    digest: 944f7780037cc4fb045333b4433891a981fbc09b07a55890dc89d710ec3dd7f7
+    icon: https://avatars.githubusercontent.com/u/60230259?s=200&v=4
+    maintainers:
+    - name: tgip-work
+      url: https://github.com/tgip-work
+    name: smartcontract
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/smartcontract-0.3.0/smartcontract-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 0.1.0
     created: "2022-02-17T12:03:03.634304889Z"
     description: 'A Helm chart for deploying the Smartcontract on a goquorum node
@@ -276,6 +307,16 @@ entries:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/smartcontract-0.1.0/smartcontract-0.1.0.tgz
     version: 0.1.0
   standalone-quorum:
+  - apiVersion: v2
+    appVersion: 21.10.2
+    created: "2022-03-11T12:35:06.677919191Z"
+    description: A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
+    digest: d814bef31a08ebb4baeda4293a98667613ba39d7edfe030dbbe2cc9a3a24425d
+    name: standalone-quorum
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.3.0/standalone-quorum-0.3.0.tgz
+    version: 0.3.0
   - apiVersion: v2
     appVersion: 21.10.2
     created: "2022-02-17T15:56:45.367957467Z"
@@ -316,4 +357,4 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.1.0/standalone-quorum-0.1.0.tgz
     version: 0.1.0
-generated: "2022-02-28T16:56:02.037873776Z"
+generated: "2022-03-11T12:35:06.678013492Z"
