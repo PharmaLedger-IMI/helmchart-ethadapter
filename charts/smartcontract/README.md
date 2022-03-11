@@ -8,8 +8,12 @@ The anchoring info (address and Abi) of the Smartcontract will be stored in a Ku
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
-- DNS name/IP address and port of the Quorum node to communicate with in order to deploy the smart contract - See config parameters `config.quorumNodeAddress` and `config.quorumNodePort` - **Note:** Defaults to first node provided by helm chart *standalone-quorum* on a sandbox environment.
-- ETH account address of preexisting and unlocked account. See `config.account` - **Note:** Default to account provided by helm chart *standalone-quorum* on a sandbox environment.
+- These values:
+
+  | Configuration<br/>value | Description | Sandbox | Non-Sandbox<br/>connected blockchain |
+  |-------------------------|:-----------:|:-------:|:------------------------------------:|
+  | `config.quorumNodeAddress`<br/>and `config.quorumNodePort` | Address of<br/>Quorum node | **Not required**<br/>Defaults to first node of<br/>helm chart *standalone-quorum* | **Required** |
+  | `config.account` | ETH account address<br/>of preexisting and unlocked account. | **Not required**<br/>Defaults to an account provided<br/>by helm chart *standalone-quorum* | **Required** |
 
 ## Changelog
 
@@ -18,7 +22,7 @@ The anchoring info (address and Abi) of the Smartcontract will be stored in a Ku
   - An preexisting ETH Account that you own needs must be provided. A new ETH account will *NOT* be created anymore.
   - Therefore no secret with OrgAccount data will be created anymore.
   - `config.quorumNodeUrl` has been replaced by `config.quorumNodeAddress` and `config.quorumNodePort`.
-  - `config.account` refers to an ETH account created by helm chart *standalone-quorum*.
+  - `config.account` defaults to an ETH account created by helm chart *standalone-quorum*.
   - `config.anchoringSC` has been removed. The SmartContract definition is now part of the container image.
 
 - From 0.1.x to 0.2.x
