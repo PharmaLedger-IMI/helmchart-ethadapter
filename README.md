@@ -52,6 +52,12 @@ Abstract Overview
 
 ### Install Quorum network, Smart Contract, ethadapter and epi application
 
+Installation of a Sandbox environment.
+
+#### Commandline/Shell
+
+Install:
+
 ```bash
 echo "Deploying sandbox quorum"
 helm upgrade --install quorum ph-ethadapter/standalone-quorum \
@@ -93,7 +99,7 @@ helm upgrade --install epi ph-ethadapter/epi \
 
 ```
 
-### Uninstall
+Uninstall:
 
 ```bash
 helm delete --namespace=epi epi
@@ -101,5 +107,142 @@ helm delete --namespace=ethadapter ethadapter
 helm delete --namespace=ethadapter smartcontract
 helm delete --namespace=quorum quorum
 kubectl delete namespace epi ethadapter quorum
+
+```
+
+#### Terraform
+
+terraform.tf
+
+```terraform
+#
+# Variables
+#
+variable "ethadapter_org_account_json" {
+  type        = string
+  description = "ETH Account and PrivateKey"
+  sensitive   = true
+}
+# 
+# Namespaces
+#
+resource "kubernetes_namespace" "quorum" {
+  metadata {
+    name = "quorum"
+  }
+}
+resource "kubernetes_namespace" "ethadapter" {
+  metadata {
+    name = "ethadapter"
+  }
+}
+resource "kubernetes_namespace" "epi" {
+  metadata {
+    name = "epi"
+  }
+}
+#
+# Helm Releases
+#
+resource "helm_release" "quorum" {
+  depends_on = [
+    kubernetes_namespace.quorum
+  ]
+
+  name      = "quorum"
+  namespace = "quorum"
+
+  repository = "https://pharmaledger-imi.github.io/helmchart-ethadapter"
+  chart      = "standalone-quorum"
+  version    = "0.3.0"
+
+  create_namespace = false
+  timeout          = 600
+  wait             = true
+  wait_for_jobs    = true
+
+  set {
+    name  = "config.storage.size"
+    value = "10Gi"
+  }
+  set {
+    name  = "config.storage.type"
+    value = "pvc"
+  }
+}
+resource "helm_release" "smartcontract" {
+  depends_on = [
+    kubernetes_namespace.ethadapter,
+    helm_release.quorum
+  ]
+
+  name      = "smartcontract"
+  namespace = "ethadapter"
+
+  repository = "https://pharmaledger-imi.github.io/helmchart-ethadapter"
+  chart      = "smartcontract"
+  version    = "0.3.0"
+
+  create_namespace = false
+  timeout          = 600
+  wait             = true
+  wait_for_jobs    = true
+}
+resource "helm_release" "ethadapter" {
+  depends_on = [
+    kubernetes_namespace.ethadapter,
+    helm_release.smartcontract
+  ]
+
+  name      = "ethadapter"
+  namespace = "ethadapter"
+
+  repository = "https://pharmaledger-imi.github.io/helmchart-ethadapter"
+  chart      = "ethadapter"
+  version    = "0.4.0"
+
+  create_namespace = false
+  timeout          = 600
+  wait             = true
+  wait_for_jobs    = true
+
+  values = [<<EOF
+secrets:
+  orgAccountJson: |
+    ${var.ethadapter_org_account_json}
+EOF
+  ]
+}
+resource "helm_release" "epi" {
+  depends_on = [
+    kubernetes_namespace.epi,
+    helm_release.ethadapter
+  ]
+
+  name      = "epi"
+  namespace = "epi"
+
+  repository = "https://pharmaledger-imi.github.io/helmchart-ethadapter"
+  chart      = "epi"
+  version    = "0.2.0"
+
+  create_namespace = false
+  timeout          = 600
+  wait             = true
+  wait_for_jobs    = true
+
+  set {
+    name  = "config.ethadapterUrl"
+    value = "http://ethadapter.ethadapter:3000"
+  }
+  set {
+    name  = "image.repository"
+    value = "TODO: YOUR REPOSITORY WITH EPI IMAGES"
+  }
+  set {
+    name  = "image.tag"
+    value = "TODO: YOUR TAG"
+  }
+}
 
 ```
