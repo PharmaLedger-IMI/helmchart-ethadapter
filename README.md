@@ -141,7 +141,14 @@ resource "kubernetes_namespace" "epi" {
     name = "epi"
   }
 }
+#
+# Helm Releases
+#
 resource "helm_release" "quorum" {
+  depends_on = [
+    kubernetes_namespace.quorum
+  ]
+
   name      = "quorum"
   namespace = "quorum"
 
@@ -164,6 +171,11 @@ resource "helm_release" "quorum" {
   }
 }
 resource "helm_release" "smartcontract" {
+  depends_on = [
+    kubernetes_namespace.ethadapter,
+    helm_release.quorum
+  ]
+
   name      = "smartcontract"
   namespace = "ethadapter"
 
@@ -176,22 +188,12 @@ resource "helm_release" "smartcontract" {
   wait             = true
   wait_for_jobs    = true
 }
-# Content
-module "quorum" {
-  source = "./modules/quorum"
-  depends_on = [
-    module.bootstrapping,
-    module.namespace_quorum
-  ]
-}
-module "smartcontract" {
-  source = "./modules/smartcontract"
-  depends_on = [
-    module.quorum,
-    module.namespace_ethadapter
-  ]
-}
 resource "helm_release" "ethadapter" {
+  depends_on = [
+    kubernetes_namespace.ethadapter,
+    helm_release.smartcontract
+  ]
+
   name      = "ethadapter"
   namespace = "ethadapter"
 
@@ -212,6 +214,11 @@ EOF
   ]
 }
 resource "helm_release" "epi" {
+  depends_on = [
+    kubernetes_namespace.epi,
+    helm_release.ethadapter
+  ]
+
   name      = "epi"
   namespace = "epi"
 
