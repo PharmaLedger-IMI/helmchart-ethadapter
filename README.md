@@ -54,6 +54,22 @@ Abstract Overview
 
 Installation of a Sandbox environment.
 
+**Important note** about running a container as **non-root user**, e.g. as proposed for epi [here](https://github.com/PharmaLedger-IMI/epi-workspace/issues/577.). In this case set *podSecurityContext* and *securityContext*. Here for epi application:
+
+```text
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+```
+
 #### Commandline/Shell
 
 Install:
