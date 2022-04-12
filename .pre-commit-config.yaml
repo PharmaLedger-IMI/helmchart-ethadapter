@@ -6,3 +6,13 @@ repos:
       args:
         # Make the tool search for charts under the `charts` directory
         - --chart-search-root=charts
+- repo: https://github.com/bridgecrewio/checkov.git
+  rev: 'd9269af517a85a62d8010e17fa09b34e1a3b17ed' # 2.0.1054 ff217a56ee70b9b0c6d82174a9a816d52663187a = 
+  hooks:
+    - id: checkov
+      verbose: true
+      args:
+        - -d ./charts/epi
+        - --framework helm
+        - --quiet
+        - --compact
