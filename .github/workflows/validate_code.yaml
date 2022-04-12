@@ -46,3 +46,6 @@ jobs:
 
       - uses: bridgecrewio/checkov-action@00cc657f4d415593e5c8897bc87f490497ccb5f9 # v12.641.0
         name: Run Checkov action
+        with:
+          directory: charts/
+          framework: helm
