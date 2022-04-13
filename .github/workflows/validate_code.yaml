@@ -48,3 +48,4 @@ jobs:
         name: Checkov ethadapter
         with:
           config_file: .checkov/ethadapter/.checkov.yaml
+          directory: charts/ethadapter
