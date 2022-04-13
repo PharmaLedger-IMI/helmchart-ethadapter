@@ -13,3 +13,4 @@ skip-check:
 soft-fail: true
 var-file:
 - .checkov/ethadapter/values.yaml
+output: cli
