@@ -44,5 +44,8 @@ jobs:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
         name: Checkout
 
-      - uses: bridgecrewio/checkov-action@00cc657f4d415593e5c8897bc87f490497ccb5f9 # v12.641.0
-        name: Run Checkov action
+      - uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf # v12.1347.0
+        name: Checkov ethadapter
+        with:
+          config_file: .checkov/ethadapter/.checkov.yaml
+          directory: charts/ethadapter

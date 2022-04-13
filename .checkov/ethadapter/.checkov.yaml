@@ -1,0 +1,16 @@
+compact: true
+directory:
+- charts/ethadapter
+download-external-modules: false
+evaluate-variables: true
+external-modules-download-path: .external_modules
+framework:
+- helm
+quiet: true
+skip-check:
+- CKV_K8S_21
+- CKV_K8S_15
+soft-fail: true
+var-file:
+- .checkov/ethadapter/values.yaml
+output: cli

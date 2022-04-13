@@ -1,0 +1,33 @@
+# -- Security Context for the pod.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod)
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- Security Context for the container.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+config:
+  smartContractAddress: "someaddress"
+
+secrets:
+  # -- Org Account in JSON format.
+  # This value must be set or orgAccountJsonBase64.
+  orgAccountJson: "someOrgAccount"
+
+# -- Resource constraints for a pod
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 5m
+    memory: 128Mi
+
