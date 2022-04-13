@@ -49,3 +49,5 @@ jobs:
         with:
           directory: charts/
           framework: helm
+          quiet: true
+          soft_fail: true
