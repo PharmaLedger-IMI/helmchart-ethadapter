@@ -1,0 +1,190 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fgt.fullname" . }}
+  labels:
+    {{- include "fgt.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "fgt.selectorLabels" . | nindent 6 }}
+{{- with .Values.deploymentStrategy }}
+  strategy:
+{{ toYaml . | trim | indent 4 }}
+{{- end }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "fgt.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "fgt.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        env:
+          - name: ROLE
+            value: {{ .Values.config.role }}
+          - name: SWAGGER_SERVER
+            value: {{ .Values.config.fgtApi }}
+          ## Credentials File will be removed later by PDM
+          - name: CREDENTIALS_FILE
+            value: mah-bayer.json
+        # command:
+        #   - sh
+        #   - -c
+        # args:
+        #     #
+        #     # NOT WORKING: As of Feb-23 2022 the build process must run on every startup as
+        #     # it also write files into ephemeral container disk space, e.g. /fgt-workspace/apihub-root/demiurge-wallet/loader/environment.js
+        #     #
+        #     # echo "=======> Starting server only - do not run build as apps are already built here..."
+        #     # npm run server
+        #     #
+        #     # Additionally mounting seedsBackup not working (Feb-23 2022) as mounted files are readonly 
+        #     # and the build process overwrites it even if no changes occur.
+        #     #
+        #   - |
+        #     cd /fgt-workspace
+        #     echo "=======> Copying seedsBackupOnStartup to seedsBackup ..."
+        #     cp apihub-root/seedsBackupOnStartup apihub-root/seedsBackup
+        #     echo "=======> Starting application in background process ..."
+        #     npm run server &
+        #     server_pid=$!
+        #     echo "=======> Application running in background with PID=$server_pid"
+        #     echo "=======> Slefgtng for {{ .Values.config.sleepTime }} ..."
+        #     sleep {{ .Values.config.sleepTime }}
+        #     echo "=======> Starting build process ..."
+        #     npm run build-all
+        #     rc=$?
+        #     echo "=======> Build process done - rc=$rc"
+        #     if [ $rc -eq 0 ]
+        #     then 
+        #       echo "=======> Build process successful - Writing file that application is ready ..."
+        #       touch /fgt-workspace/apihub-root/ready
+        #       tail -f /dev/null
+        #     fi
+        volumeMounts:
+          - name: fgt-external-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume
+          - name: fgt-config-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/apihub.json
+            subPath: apihub.json
+            readOnly: true
+          - name: fgt-bdns-config-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/bdns.hosts
+            subPath: bdns.hosts
+            readOnly: true
+          - name: fgt-config-volume
+            mountPath: /fgt-workspace/env.json
+            subPath: env.json
+            readOnly: true
+          # - name: fgt-domains-volume
+          #   mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/{{ required "config.domain must be set" .Values.config.domain }}.json
+          #   subPath: {{ required "config.domain must be set" .Values.config.domain }}.json
+          #   readOnly: true
+          # - name: fgt-domains-volume
+          #   mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/{{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+          #   subPath: {{ required "config.subDomain must be set" .Values.config.subDomain }}.json
+          #   readOnly: true
+          # - name: fgt-domains-volume
+          #   mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/{{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+          #   subPath: {{ required "config.vaultDomain must be set" .Values.config.vaultDomain }}.json
+          #   readOnly: true
+          - name: fgt-domains-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/default.json
+            subPath: default.json
+            readOnly: true
+          - name: fgt-domains-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/predefined.json
+            subPath: predefined.json
+            readOnly: true
+          - name: fgt-domains-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/traceability.json
+            subPath: traceability.json
+            readOnly: true
+          - name: fgt-domains-volume
+            mountPath: /fgt-workspace/apihub-root/external-volume/config/domains/vault.json
+            subPath: vault.json
+            readOnly: true
+          - name: fgt-env-volume
+            mountPath: /fgt-workspace/trust-loader-config/dsu-explorer/loader/environment.js
+            subPath: dsu-explorer-environment.js
+            readOnly: true
+          - name: fgt-env-volume
+            mountPath: /fgt-workspace/trust-loader-config/fgt-mah-wallet/loader/environment.js
+            subPath: fgt-mah-wallet-environment.js
+            readOnly: true
+          - name: fgt-env-volume
+            mountPath: /fgt-workspace/trust-loader-config/fgt-pharmacy-wallet/loader/environment.js
+            subPath: fgt-pharmacy-wallet-environment.js
+            readOnly: true
+          - name: fgt-env-volume
+            mountPath: /fgt-workspace/trust-loader-config/fgt-wholesaler-wallet/loader/environment.js
+            subPath: fgt-wholesaler-wallet-environment.js
+            readOnly: true
+          - name: fgt-cred-volume
+            mountPath: /fgt-workspace/fgt-api/config/fgt-mah-wallet/credentials.json
+            subPath: credentials.json
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: fgt-config-volume
+          configMap:
+            name: {{ include "fgt.fullname" . }}-config
+        - name: fgt-bdns-config-volume
+          configMap:
+            name: {{ include "fgt.fullname" . }}-bdns
+        - name: fgt-domains-volume
+          configMap:
+            name: {{ include "fgt.fullname" . }}-domains
+        - name: fgt-env-volume
+          configMap:
+            name: {{ include "fgt.fullname" . }}-environment
+        - name: fgt-cred-volume
+          configMap:
+            name: {{ include "fgt.fullname" . }}-credentials
+        - name: fgt-external-volume
+          persistentVolumeClaim:
+            claimName:  {{ include "fgt.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

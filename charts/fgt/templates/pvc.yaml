@@ -1,0 +1,34 @@
+{{- /*
+Persistent Storage for Bricks will be created on pre-install and will remain for the whole lifetime of the helm installation!
+It will be deleted be job-cleanup.
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "fgt.fullname" . }}
+  annotations:
+    "description": "Persistent Storage for whole lifetime"
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "-1"
+    {{- /*
+    Skip deleting this resource when a helm operation (such as helm uninstall, helm upgrade or helm rollback) would result in its deletion.
+    */}}
+    "helm.sh/resource-policy": keep
+  labels:
+    {{- include "fgt.labels" . | nindent 4 }}
+  {{- with .Values.persistence.finalizers  }}
+  finalizers:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  {{- end }}
+  accessModes:
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}

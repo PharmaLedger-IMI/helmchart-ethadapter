@@ -1,0 +1,24 @@
+{{- /*
+Create Configmaps from templates
+*/}}
+
+{{- include "fgt.configmap-bdns" (list $ . "" (dict)) }}
+---
+{{- include "fgt.configmap-config" (list $ . "" (dict)) }}
+---
+{{- include "fgt.configmap-domains" (list $ . "" (dict)) }}
+---
+{{- include "fgt.configmap-credentials" (list $ . "" (dict)) }}
+---
+{{- include "fgt.configmap-environment" (list $ . "" (dict)) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fgt.fullname" . }}-build-info
+  annotations:
+    "description": "Info about which image has been successfully built latest"
+  labels:
+    {{- include "fgt.labels" . | nindent 4 }}
+data:
+  lastBuiltImage: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

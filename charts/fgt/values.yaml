@@ -1,0 +1,242 @@
+# Default values for fgt.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  # -- The repository of the container image
+  repository: fgt-workspace
+  # -- Image Pull Policy
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+## -- The strategy of the deployment. Defaults to Recreate as a PVC is bound to it.
+## See `kubectl explain deployment.spec.strategy` for more and [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
+deploymentStrategy:
+  type: Recreate
+
+# -- Secret(s) for pulling an container image from a private registry.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+imagePullSecrets: []
+# -- nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.
+# From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm)
+nameOverride: ""
+# -- fullnameOverride completely replaces the generated name.
+# From [https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm](https://stackoverflow.com/questions/63838705/what-is-the-difference-between-fullnameoverride-and-nameoverride-in-helm)
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations added to the pod
+podAnnotations: {}
+
+# -- Security Context for the pod. 
+# IMPORTANT: Take a look at values.yaml file for configuration for non-root user!
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod)
+#
+# For running as root-user (which is not recommendedIf you run as root user (which is absolutely NOT recommended) then 
+podSecurityContext: {}
+  # fsGroup: 1000
+
+# -- Security Context for the application container
+# IMPORTANT: Take a look at values.yaml file for configuration for non-root user!
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
+# 
+# For running as non-root with uid 1000, remove {} from next line and uncomment next lines!
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # # -- Running as readonly filesystem is currently (Feb 2022) not possible.
+  # readOnlyRootFilesystem: false
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# -- Enable persistence using Persistent Volume Claims
+# See [http://kubernetes.io/docs/user-guide/persistent-volumes/](http://kubernetes.io/docs/user-guide/persistent-volumes/)
+persistence:
+  # -- Name of the storage class.
+  # If empty or not set then storage class will not be set - which means that the default storage class will be used.
+  storageClassName: ""
+  # -- Size of the volume
+  size: "20Gi"
+  # -- Boolean flag whether to delete the persistent volume on uninstall or not.
+  deletePvcOnUninstall: true
+  finalizers:
+    - kubernetes.io/pvc-protection
+  accessModes:
+    - ReadWriteOnce
+
+service:
+  # -- Either ClusterIP, NodePort or LoadBalancer.
+  # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+  type: ClusterIP
+  # -- Port where the service will be exposed
+  port: 80
+  # -- Annotations for the service.
+  # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+  # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+  annotations: {}
+
+# -- Configuration. Will be put in ConfigMaps.
+config:
+  # -- The role the FGT API Hub takes
+  role: "mah"
+  # -- The URL of the FGT API including port
+  fgtApi: "http://localhost:18080/traceability"
+  # The time to sleep between start of apihub (npm run server) and build process (npm run build-all)
+  sleepTime: "10s"
+  # -- The Domain, e.g. "epipoc"
+  domain: "fgt"
+  # -- The Subdomain, should be domain.company, e.g. epipoc.my-company
+  subDomain: "fgt.my-company"
+  # -- The Vault domain, should be vault.company, e.g. vault.my-company
+  vaultDomain: "vault.my-company"
+  # -- The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000"
+  ethadapterUrl: "http://ethadapter.ethadapter:3000"
+  # -- Centrally managed and provided BDNS Hosts Config
+  bdnsHosts: |-
+    {
+      "default": {
+        "replicas": [],
+        "brickStorages": [
+          "$ORIGIN"
+        ],
+        "anchoringServices": [
+          "$ORIGIN"
+        ]
+      },
+      "traceability": {
+        "replicas": [],
+        "brickStorages": [
+          "$ORIGIN"
+        ],
+        "mqEndpoints": [
+          "$ORIGIN"
+        ],
+        "anchoringServices": [
+          "$ORIGIN"
+        ]
+      },
+      "vault": {
+        "replicas": [],
+        "brickStorages": [
+          "$ORIGIN"
+        ],
+        "anchoringServices": [
+          "$ORIGIN"
+        ]
+      }
+    }
+  credentials: |-
+    {
+      "id": {
+        "secret": "MAH251339219",
+        "public": true
+      },
+      "name": {
+        "secret": "Bayer AG",
+        "public": true
+      },
+      "email": {
+        "secret": "pharmaledger@bayer.com",
+        "public": true
+      },
+      "pass": {
+        "secret": "This1sSuchAS3curePassw0rd"
+      }
+    }
+
+ingress:
+  # -- Whether to create ingress or not.
+  # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
+  enabled: false
+  # -- The className specifies the IngressClass object which is responsible for that class.
+  # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
+  # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
+  # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
+  # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
+  className: ""
+  # -- Ingress annotations.
+  # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
+  # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
+  # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+  # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- A list of hostnames and path(s) to listen at the Ingress Controller
+  hosts:
+    - # -- The FQDN/hostname
+      host: fgt.some-pharma-company.com
+      paths:
+        - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
+          # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
+          path: /
+          # -- The type of path. This value is required since Kubernetes 1.18.
+          # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
+          # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
+          # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- Resource constraints for the container
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- Node Selectors in order to assign pods to certain nodes.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+nodeSelector: {}
+
+# -- Tolerations for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+tolerations: []
+
+# -- Affinity for scheduling a pod.
+# See [https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+affinity: {}
+
+# -- Liveness probe.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+livenessProbe:
+  # httpGet:
+  #   path: /
+  #   port: http
+  # initialDelaySeconds: 500
+  # periodSeconds: 500
+  # timeoutSeconds: 20
+  # successThreshold: 1
+  # failureThreshold: 20
+
+# -- Readiness probe.
+# See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+readinessProbe:
+  exec:
+    command:
+    - cat
+    - /fgt-workspace/apihub-root/ready # to be confirmed
+  initialDelaySeconds: 500
+  periodSeconds: 500
+  successThreshold: 1
+  failureThreshold: 60
