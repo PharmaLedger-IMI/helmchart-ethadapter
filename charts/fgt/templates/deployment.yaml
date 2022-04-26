@@ -36,8 +36,14 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-          - name: http
-            containerPort: 8080
+          - name: app
+            containerPort: {{ .Values.services.app.containerPort }}
+            protocol: TCP
+          - name: api
+            containerPort: {{ .Values.services.api.containerPort }}
+            protocol: TCP
+          - name: swagger
+            containerPort: {{ .Values.services.swagger.containerPort }}
             protocol: TCP
         {{- with .Values.livenessProbe }}
         livenessProbe:
@@ -56,43 +62,59 @@ spec:
             value: {{ .Values.config.role }}
           - name: SWAGGER_SERVER
             value: {{ .Values.config.fgtApi }}
-          ## Credentials File will be removed later by PDM
-          - name: CREDENTIALS_FILE
-            value: mah-bayer.json
-        # command:
-        #   - sh
-        #   - -c
-        # args:
-        #     #
-        #     # NOT WORKING: As of Feb-23 2022 the build process must run on every startup as
-        #     # it also write files into ephemeral container disk space, e.g. /fgt-workspace/apihub-root/demiurge-wallet/loader/environment.js
-        #     #
-        #     # echo "=======> Starting server only - do not run build as apps are already built here..."
-        #     # npm run server
-        #     #
-        #     # Additionally mounting seedsBackup not working (Feb-23 2022) as mounted files are readonly 
-        #     # and the build process overwrites it even if no changes occur.
-        #     #
-        #   - |
-        #     cd /fgt-workspace
-        #     echo "=======> Copying seedsBackupOnStartup to seedsBackup ..."
-        #     cp apihub-root/seedsBackupOnStartup apihub-root/seedsBackup
-        #     echo "=======> Starting application in background process ..."
-        #     npm run server &
-        #     server_pid=$!
-        #     echo "=======> Application running in background with PID=$server_pid"
-        #     echo "=======> Slefgtng for {{ .Values.config.sleepTime }} ..."
-        #     sleep {{ .Values.config.sleepTime }}
-        #     echo "=======> Starting build process ..."
-        #     npm run build-all
-        #     rc=$?
-        #     echo "=======> Build process done - rc=$rc"
-        #     if [ $rc -eq 0 ]
-        #     then 
-        #       echo "=======> Build process successful - Writing file that application is ready ..."
-        #       touch /fgt-workspace/apihub-root/ready
-        #       tail -f /dev/null
-        #     fi
+        command:
+          - bash
+          - -c
+        args:
+            # 
+            #
+          - |
+            cd /fgt-workspace
+            
+            echo "=======> Starting APIHub in background process ..."
+            npm run server &
+            server_pid=$!
+            echo "=======> Application running in background with PID=$server_pid"
+            echo ""
+            echo "=======> Waiting for APIHub to be responsive ..."
+
+            trial_count=0
+            wget localhost:8080
+            wget_rc=$?
+            while [[ $wget_rc -ne 0 && $trial_count -le 60 ]]
+            do
+                sleep 1s
+                trial_count=$(( $trial_count + 1 ))
+                wget localhost:8080
+                wget_rc=$?
+            done
+
+            echo $wget_rc
+
+            if [ $wget_rc -ne 0 ];
+            then
+                echo "=======> ERROR: APIHub not responsive after 60 connection attempts"
+                exit $wget_rc
+            fi
+
+            echo "=======> Starting Build Process ..."
+            # Exit on error
+            set -e
+            npm run build-all 
+            npm run environment-test
+
+            rc=$?
+            echo "=======> Build Process DONE - rc=$rc"
+
+            if [ $rc -eq 0 ]
+            then 
+              echo "=======> Build process successful - Writing file that application is ready ..."
+              touch /fgt-workspace/apihub-root/ready
+
+              echo "Run a blocking command to keep container alive"
+              tail -f /dev/null
+            fi
+
         volumeMounts:
           - name: fgt-external-volume
             mountPath: /fgt-workspace/apihub-root/external-volume

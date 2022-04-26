@@ -76,23 +76,12 @@ persistence:
   accessModes:
     - ReadWriteOnce
 
-service:
-  # -- Either ClusterIP, NodePort or LoadBalancer.
-  # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
-  type: ClusterIP
-  # -- Port where the service will be exposed
-  port: 80
-  # -- Annotations for the service.
-  # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
-  # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
-  annotations: {}
-
 # -- Configuration. Will be put in ConfigMaps.
 config:
   # -- The role the FGT API Hub takes
   role: "mah"
   # -- The URL of the FGT API including port
-  fgtApi: "http://localhost:18080/traceability"
+  fgtApi: "http://fgt-api.some-pharma-company.com/traceability"
   # The time to sleep between start of apihub (npm run server) and build process (npm run build-all)
   sleepTime: "10s"
   # -- The Domain, e.g. "epipoc"
@@ -144,11 +133,11 @@ config:
         "public": true
       },
       "name": {
-        "secret": "Bayer AG",
+        "secret": "Company Inc.",
         "public": true
       },
       "email": {
-        "secret": "pharmaledger@bayer.com",
+        "secret": "pharmaledger@company.com",
         "public": true
       },
       "pass": {
@@ -156,41 +145,151 @@ config:
       }
     }
 
+services:
+  app:
+    # -- Either ClusterIP, NodePort or LoadBalancer.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: ClusterIP
+    # -- Port where the service will be exposed
+    port: 80
+    containerPort: 8080
+    # -- Annotations for the service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations: {}
+
+  api:
+    # -- Either ClusterIP, NodePort or LoadBalancer.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: ClusterIP
+    # -- Port where the service will be exposed
+    port: 80
+    containerPort: 8081
+    # -- Annotations for the service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations: {}
+
+  swagger:
+    # -- Either ClusterIP, NodePort or LoadBalancer.
+    # See [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
+    type: ClusterIP
+    # -- Port where the service will be exposed
+    port: 80
+    containerPort: 3009
+    # -- Annotations for the service.
+    # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
+    # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
+    annotations: {}
+
 ingress:
-  # -- Whether to create ingress or not.
-  # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
-  enabled: false
-  # -- The className specifies the IngressClass object which is responsible for that class.
-  # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
-  # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
-  # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
-  # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
-  className: ""
-  # -- Ingress annotations.
-  # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
-  # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
-  # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
-  # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  # -- A list of hostnames and path(s) to listen at the Ingress Controller
-  hosts:
-    - # -- The FQDN/hostname
-      host: fgt.some-pharma-company.com
-      paths:
-        - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
-          # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
-          path: /
-          # -- The type of path. This value is required since Kubernetes 1.18.
-          # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
-          # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
-          # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  app:
+    # -- Whether to create ingress or not.
+    # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
+    enabled: false
+    # -- The className specifies the IngressClass object which is responsible for that class.
+    # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
+    # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
+    # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
+    # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
+    className: ""
+    # -- Ingress annotations.
+    # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
+    # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
+    # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+    # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- A list of hostnames and path(s) to listen at the Ingress Controller
+    hosts:
+      - # -- The FQDN/hostname
+        host: fgt.some-pharma-company.com
+        paths:
+          - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
+            # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
+            path: /
+            # -- The type of path. This value is required since Kubernetes 1.18.
+            # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
+            # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
+            # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  api:
+    # -- Whether to create ingress or not.
+    # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
+    enabled: false
+    # -- The className specifies the IngressClass object which is responsible for that class.
+    # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
+    # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
+    # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
+    # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
+    className: ""
+    # -- Ingress annotations.
+    # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
+    # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
+    # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+    # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- A list of hostnames and path(s) to listen at the Ingress Controller
+    hosts:
+      - # -- The FQDN/hostname
+        host: fgt-api.some-pharma-company.com
+        paths:
+          - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
+            # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
+            path: /
+            # -- The type of path. This value is required since Kubernetes 1.18.
+            # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
+            # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
+            # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  swagger:
+    # -- Whether to create ingress or not.
+    # Note: For ingress an Ingress Controller (e.g. AWS LB Controller, NGINX Ingress Controller, Traefik, ...) is required and service.type should be ClusterIP or NodePort depending on your configuration
+    enabled: false
+    # -- The className specifies the IngressClass object which is responsible for that class.
+    # Note for Kubernetes >= 1.18 it is required to have an existing IngressClass object.
+    # If IngressClass object does not exists, omit className and add the deprecated annotation 'kubernetes.io/ingress.class' instead.
+    # For Kubernetes < 1.18 either use className or annotation 'kubernetes.io/ingress.class'.
+    # See https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class
+    className: ""
+    # -- Ingress annotations.
+    # For AWS LB Controller, see [https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/)
+    # For Azure Application Gateway Ingress Controller, see [https://azure.github.io/application-gateway-kubernetes-ingress/annotations/](https://azure.github.io/application-gateway-kubernetes-ingress/annotations/)
+    # For NGINX Ingress Controller, see [https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+    # For Traefik Ingress Controller, see [https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/#annotations)
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    # -- A list of hostnames and path(s) to listen at the Ingress Controller
+    hosts:
+      - # -- The FQDN/hostname
+        host: fgt-swagger.some-pharma-company.com
+        paths:
+          - # -- The Ingress Path. See [https://kubernetes.io/docs/concepts/services-networking/ingress/#examples](https://kubernetes.io/docs/concepts/services-networking/ingress/#examples)
+            # Note: For Ingress Controllers like AWS LB Controller see their specific documentation.
+            path: /
+            # -- The type of path. This value is required since Kubernetes 1.18.
+            # For Ingress Controllers like AWS LB Controller or Traefik it is usually required to set its value to ImplementationSpecific
+            # See [https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types](https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types)
+            # and [https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/](https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/)
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
 # -- Resource constraints for the container
 resources: {}
@@ -220,14 +319,14 @@ affinity: {}
 # -- Liveness probe.
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 livenessProbe:
-  # httpGet:
-  #   path: /
-  #   port: http
-  # initialDelaySeconds: 500
-  # periodSeconds: 500
-  # timeoutSeconds: 20
-  # successThreshold: 1
-  # failureThreshold: 20
+  httpGet:
+    path: /
+    port: app
+  initialDelaySeconds: 500
+  periodSeconds: 500
+  timeoutSeconds: 20
+  successThreshold: 1
+  failureThreshold: 20
 
 # -- Readiness probe.
 # See [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
@@ -235,7 +334,7 @@ readinessProbe:
   exec:
     command:
     - cat
-    - /fgt-workspace/apihub-root/ready # to be confirmed
+    - /fgt-workspace/apihub-root/ready
   initialDelaySeconds: 500
   periodSeconds: 500
   successThreshold: 1

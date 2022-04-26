@@ -1,9 +1,10 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.ingress.swagger.enabled -}}
 {{- $fullName := include "fgt.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
-{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
-  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
+{{- $fullName =  printf "%s-swagger" $fullName -}}
+{{- $svcPort := .Values.services.swagger.port -}}
+{{- if and .Values.ingress.swagger.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingress.swagger.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.ingress.swagger.annotations "kubernetes.io/ingress.class" .Values.ingress.swagger.className}}
   {{- end }}
 {{- end }}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -18,17 +19,17 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "fgt.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- with .Values.ingress.swagger.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ingress.className }}
+  {{- if and .Values.ingress.swagger.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingress.swagger.className }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.ingress.swagger.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
+    {{- range .Values.ingress.swagger.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -37,7 +38,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
+    {{- range .Values.ingress.swagger.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
