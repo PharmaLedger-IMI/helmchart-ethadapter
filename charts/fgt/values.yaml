@@ -10,7 +10,10 @@ image:
   # -- Image Pull Policy
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: ""
+  # -- sha256 digest of the image.
+  # Do not add the prefix "@sha256:"
+  sha: ""
 
 ## -- The strategy of the deployment. Defaults to Recreate as a PVC is bound to it.
 ## See `kubectl explain deployment.spec.strategy` for more and [https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
@@ -35,6 +38,9 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+  # -- Whether automounting API credentials for a service account is enabled or not.
+  # See [https://docs.bridgecrew.io/docs/bc_k8s_35](https://docs.bridgecrew.io/docs/bc_k8s_35)
+  automountServiceAccountToken: false
 
 # -- Annotations added to the pod
 podAnnotations: {}
@@ -46,6 +52,11 @@ podAnnotations: {}
 # For running as root-user (which is not recommendedIf you run as root user (which is absolutely NOT recommended) then 
 podSecurityContext: {}
   # fsGroup: 1000
+  # runAsUser: 1000
+
+  # # -- The SecComp configuration [https://kubernetes.io/docs/tutorials/security/seccomp/](https://kubernetes.io/docs/tutorials/security/seccomp/)
+  # seccompProfile:
+  #   type: RuntimeDefault
 
 # -- Security Context for the application container
 # IMPORTANT: Take a look at values.yaml file for configuration for non-root user!
@@ -58,6 +69,7 @@ securityContext: {}
   #   - ALL
   # # -- Running as readonly filesystem is currently (Feb 2022) not possible.
   # readOnlyRootFilesystem: false
+  # allowPrivilegeEscalation: false
   # runAsNonRoot: true
   # runAsUser: 1000
 
@@ -91,7 +103,7 @@ config:
   # -- The Vault domain, should be vault.company, e.g. vault.my-company
   vaultDomain: "vault.my-company"
   # -- The Full URL of the Ethadapter including protocol and port, e.g. "https://ethadapter.my-company.com:3000"
-  ethadapterUrl: "http://ethadapter.ethadapter:3000"
+  ethadapterUrl: ""
   # -- Centrally managed and provided BDNS Hosts Config
   bdnsHosts: |-
     {
@@ -145,6 +157,82 @@ config:
       }
     }
 
+  # -- Configuration file apihub.json.
+  # Settings: [https://docs.google.com/document/d/1mg35bb1UBUmTpL1Kt4GuZ7P0K_FMqt2Mb8B3iaDf52I/edit#heading=h.z84gh8sclah3](https://docs.google.com/document/d/1mg35bb1UBUmTpL1Kt4GuZ7P0K_FMqt2Mb8B3iaDf52I/edit#heading=h.z84gh8sclah3)
+  #
+  apihub: |-
+    {
+      "storage": "../apihub-root",
+      "port": 8080,
+      "preventRateLimit": true,
+      "activeComponents": [
+        "virtualMQ",
+        "messaging",
+        "notifications",
+        "filesManager",
+        "bdns",
+        "bricksLedger",
+        "bricksFabric",
+        "bricking",
+        "anchoring",
+        "dsu-wizard",
+        "pdm-dsu-toolkit-app-store",
+        "pdm-dsu-toolkit-app-commands",
+        "fgt-dsu-wizard",
+        "gtin-dsu-wizard",
+        "mq",
+        "staticServer"
+      ],
+      "componentsConfig": {
+        "gtin-dsu-wizard": {
+          "module": "./../../gtin-dsu-wizard"
+        },
+        "pdm-dsu-toolkit-app-commands": {
+          "module": "./../../pdm-dsu-toolkit",
+          "function": "Init"
+        },
+        "fgt-dsu-wizard": {
+          "module": "./../../fgt-dsu-wizard",
+          "function": "Init"
+        },
+        "mq":{
+          "module": "./components/mqHub",
+          "function": "MQHub"
+        },
+        "bricking": {},
+        "anchoring": {}
+      },
+      "CORS": {
+        "Access-Control-Allow-Origin":"*",
+        "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Credentials": true
+      },
+      "enableRequestLogger": true,
+      "enableJWTAuthorisation": false,
+      "enableLocalhostAuthorization": false,
+      "skipJWTAuthorisation": [
+        "/assets",
+        "/leaflet-wallet",
+        "/dsu-fabric-wallet",
+        "/directory-summary",
+        "/resources",
+        "/bdns",
+        "/anchor/fgt",
+        "/anchor/default",
+        "/anchor/vault",
+        "/bricking",
+        "/bricksFabric",
+        "/bricksledger",
+        "/create-channel",
+        "/forward-zeromq",
+        "/send-message",
+        "/receive-message",
+        "/files",
+        "/notifications",
+        "/mq"
+      ]
+    }
+
 services:
   app:
     # -- Either ClusterIP, NodePort or LoadBalancer.
@@ -152,7 +240,6 @@ services:
     type: ClusterIP
     # -- Port where the service will be exposed
     port: 80
-    containerPort: 8080
     # -- Annotations for the service.
     # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
     # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
@@ -164,7 +251,6 @@ services:
     type: ClusterIP
     # -- Port where the service will be exposed
     port: 80
-    containerPort: 8081
     # -- Annotations for the service.
     # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
     # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
@@ -176,7 +262,6 @@ services:
     type: ClusterIP
     # -- Port where the service will be exposed
     port: 80
-    containerPort: 3009
     # -- Annotations for the service.
     # See AWS, see [https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws](https://kubernetes.io/docs/concepts/services-networking/service/#ssl-support-on-aws)
     # For Azure, see [https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations](https://kubernetes-sigs.github.io/cloud-provider-azure/topics/loadbalancer/#loadbalancer-annotations)
@@ -322,9 +407,9 @@ livenessProbe:
   httpGet:
     path: /
     port: app
-  initialDelaySeconds: 500
-  periodSeconds: 500
-  timeoutSeconds: 20
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
   successThreshold: 1
   failureThreshold: 20
 
@@ -336,6 +421,6 @@ readinessProbe:
     - cat
     - /fgt-workspace/apihub-root/ready
   initialDelaySeconds: 500
-  periodSeconds: 500
+  periodSeconds: 5
   successThreshold: 1
   failureThreshold: 60

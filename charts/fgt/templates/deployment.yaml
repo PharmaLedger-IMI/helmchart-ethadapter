@@ -26,6 +26,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
       serviceAccountName: {{ include "fgt.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -33,17 +34,21 @@ spec:
       - name: {{ .Chart.Name }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
+        {{- if .Values.image.sha }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}@sha256:{{ .Values.image.sha }}"
+        {{- else }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        {{- end }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
           - name: app
-            containerPort: {{ .Values.services.app.containerPort }}
+            containerPort: 8080
             protocol: TCP
           - name: api
-            containerPort: {{ .Values.services.api.containerPort }}
+            containerPort: 8081
             protocol: TCP
           - name: swagger
-            containerPort: {{ .Values.services.swagger.containerPort }}
+            containerPort: 3009
             protocol: TCP
         {{- with .Values.livenessProbe }}
         livenessProbe:
@@ -62,14 +67,18 @@ spec:
             value: {{ .Values.config.role }}
           - name: SWAGGER_SERVER
             value: {{ .Values.config.fgtApi }}
+          - name: CREDENTIALS_FILE
+            value: "mah-bayer.json"
         command:
-          - bash
+          - sh
           - -c
         args:
-            # 
+            # Commands used instead of the start-up script to boot the FGT container
             #
           - |
             cd /fgt-workspace
+
+            npm config set strict-ssl false
             
             echo "=======> Starting APIHub in background process ..."
             npm run server &
@@ -79,17 +88,17 @@ spec:
             echo "=======> Waiting for APIHub to be responsive ..."
 
             trial_count=0
-            wget localhost:8080
+            wget --spider localhost:8080
             wget_rc=$?
             while [[ $wget_rc -ne 0 && $trial_count -le 60 ]]
             do
                 sleep 1s
                 trial_count=$(( $trial_count + 1 ))
-                wget localhost:8080
+                wget --spider localhost:8080
                 wget_rc=$?
             done
 
-            echo $wget_rc
+            echo "wget return code: " + $wget_rc
 
             if [ $wget_rc -ne 0 ];
             then
@@ -100,11 +109,16 @@ spec:
             echo "=======> Starting Build Process ..."
             # Exit on error
             set -e
-            npm run build-all 
-            npm run environment-test
-
+            npm run build-all
             rc=$?
             echo "=======> Build Process DONE - rc=$rc"
+
+            echo "=======> Boot FGT API ..."
+            cd fgt-api
+            npm run boot-api-helm &
+            echo "=======> Boot FGT API DONE"
+
+            sleep {{ .Values.config.sleepTime }}
 
             if [ $rc -eq 0 ]
             then 

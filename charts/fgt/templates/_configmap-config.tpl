@@ -26,76 +26,7 @@ data:
     }
 
   apihub.json: |-
-    {
-      "storage": "../apihub-root",
-      "port": 8080,
-      "preventRateLimit": true,
-      "activeComponents": [
-        "virtualMQ",
-        "messaging",
-        "notifications",
-        "filesManager",
-        "bdns",
-        "bricksLedger",
-        "bricksFabric",
-        "bricking",
-        "anchoring",
-        "dsu-wizard",
-        "pdm-dsu-toolkit-app-store",
-        "pdm-dsu-toolkit-app-commands",
-        "fgt-dsu-wizard",
-        "gtin-dsu-wizard",
-        "mq",
-        "staticServer"
-      ],
-      "componentsConfig": {
-        "gtin-dsu-wizard": {
-          "module": "./../../gtin-dsu-wizard"
-        },
-        "pdm-dsu-toolkit-app-commands": {
-          "module": "./../../pdm-dsu-toolkit",
-          "function": "Init"
-        },
-        "fgt-dsu-wizard": {
-          "module": "./../../fgt-dsu-wizard",
-          "function": "Init"
-        },
-        "mq":{
-          "module": "./components/mqHub",
-          "function": "MQHub"
-        },
-        "bricking": {},
-        "anchoring": {}
-      },
-      "CORS": {
-        "Access-Control-Allow-Origin":"*",
-        "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Credentials": true
-      },
-      "enableRequestLogger": true,
-      "enableJWTAuthorisation": false,
-      "enableLocalhostAuthorization": false,
-      "skipJWTAuthorisation": [
-        "/assets",
-        "/leaflet-wallet",
-        "/dsu-fabric-wallet",
-        "/directory-summary",
-        "/resources",
-        "/bdns",
-        "/anchor/fgt",
-        "/anchor/default",
-        "/anchor/vault",
-        "/bricking",
-        "/bricksFabric",
-        "/bricksledger",
-        "/create-channel",
-        "/forward-zeromq",
-        "/send-message",
-        "/receive-message",
-        "/files",
-        "/notifications",
-        "/mq"
-      ]
-    }
+{{ required "config.apihub must be set" .Values.config.apihub | indent 4 }}
+
 {{- end }}
 {{- end }}
