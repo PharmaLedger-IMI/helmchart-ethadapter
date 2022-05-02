@@ -40,6 +40,23 @@ data:
     }
 
   traceability.json: |-
+{{- if .Values.config.ethadapterUrl }}
+    {
+      "anchoring": {
+        "type": "ETH",
+        "option": {
+          "endpoint": {{ .Values.config.ethadapterUrl }}
+        },
+        "commands": {
+          "addAnchor": "anchor"
+        }
+      },
+      "enable": ["mq"],
+      "skipOAuth": [
+        "/bricking/traceability/get-brick"
+      ]
+    }
+{{- else }}
     {
       "anchoring": {
         "type": "FS",
@@ -55,6 +72,7 @@ data:
         "/bricking/traceability/get-brick"
       ]
     }
+{{- end }}
 
   vault.json: |-
     {
@@ -63,7 +81,7 @@ data:
         "option": {}
       }
     }
-  
+{{- /*
   {{ required "config.domain must be set" .Values.config.domain }}.json: |-
     {
       "anchoring": {
@@ -95,6 +113,6 @@ data:
          "option": {}
       }
     }
-
+*/}}
 {{- end }}
 {{- end }}
