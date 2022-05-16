@@ -2,6 +2,15 @@
 
 Helm Charts for Pharma Ledger
 
+## DEPRECATED - IMPORTANT
+
+Helm Charts have moved to [https://github.com/PharmaLedger-IMI/helm-charts](https://github.com/PharmaLedger-IMI/helm-charts) except
+
+- smartcontract
+- standalone-quorum
+
+They are about to follow!
+
 ## Requirements
 
 - [helm 3](https://helm.sh/docs/intro/install/)
