@@ -284,6 +284,23 @@ entries:
   smartcontract:
   - apiVersion: v2
     appVersion: latest
+    created: "2022-05-18T12:04:04.378351416Z"
+    description: 'A Helm chart for deploying the Smartcontract on a goquorum node
+      for a given ETH account. The anchoring info (address and Abi) of the Smartcontract
+      will be stored in a Kubernetes ConfigMap to make them usable by other components
+      running on Kubernetes. '
+    digest: a6b3ef94465eb9111616249aa8ca99142f944cee3ab3483011807a677e83859c
+    icon: https://avatars.githubusercontent.com/u/60230259?s=200&v=4
+    maintainers:
+    - name: tgip-work
+      url: https://github.com/tgip-work
+    name: smartcontract
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/smartcontract-0.3.1/smartcontract-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: latest
     created: "2022-03-11T12:35:06.543759972Z"
     description: 'A Helm chart for deploying the Smartcontract on a goquorum node
       for a given ETH account. The anchoring info (address and Abi) of the Smartcontract
@@ -338,6 +355,16 @@ entries:
   standalone-quorum:
   - apiVersion: v2
     appVersion: 21.10.2
+    created: "2022-05-18T12:04:04.545689471Z"
+    description: A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
+    digest: e627be204089ee1359bb33f8b3c184e8f1b3c0760b40d27796f20fcf01ad6c0c
+    name: standalone-quorum
+    type: application
+    urls:
+    - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.3.1/standalone-quorum-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: 21.10.2
     created: "2022-03-11T12:35:06.677919191Z"
     description: A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
     digest: d814bef31a08ebb4baeda4293a98667613ba39d7edfe030dbbe2cc9a3a24425d
@@ -386,4 +413,4 @@ entries:
     urls:
     - https://github.com/PharmaLedger-IMI/helmchart-ethadapter/releases/download/standalone-quorum-0.1.0/standalone-quorum-0.1.0.tgz
     version: 0.1.0
-generated: "2022-05-16T11:55:26.586026256Z"
+generated: "2022-05-18T12:04:04.545775872Z"
