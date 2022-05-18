@@ -1,8 +1,12 @@
 # standalone-quorum
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21.10.2](https://img.shields.io/badge/AppVersion-21.10.2-informational?style=flat-square)
+![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21.10.2](https://img.shields.io/badge/AppVersion-21.10.2-informational?style=flat-square)
 
 A Helm chart for a standalone Quorum network adapted from https://github.com/ConsenSys/quorum-kubernetes/tree/master/playground/kubectl/quorum-go/ibft
+
+## DEPRECATED - IMPORTANT
+
+This Helm Chart has moved to [https://github.com/PharmaLedger-IMI/helm-charts/tree/master/charts/standalone-quorum](https://github.com/PharmaLedger-IMI/helm-charts/tree/master/charts/standalone-quorum).
 
 ## Requirements
 
@@ -42,7 +46,7 @@ This helm chart installs the Playground environment for a Quorum Cluster with st
 Install to namespace `quorum`
 
 ```bash
-helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.0 \
+helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.1 \
     --install \
     --namespace=quorum --create-namespace \
     --set config.storage.size="10Gi" \
@@ -59,7 +63,7 @@ Run `helm upgrade --helm` for full list of options.
     Provide the `--wait` argument and time to wait (default is 5 minutes) via `--timeout`
 
     ```bash
-    helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.0 \
+    helm upgrade quorum ph-ethadapter/standalone-quorum --version=0.3.1 \
         --install \
         --wait --timeout=1200s \
         --namespace=quorum --create-namespace \

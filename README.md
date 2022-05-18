@@ -6,10 +6,10 @@ Helm Charts for Pharma Ledger
 
 Helm Charts have moved to [https://github.com/PharmaLedger-IMI/helm-charts](https://github.com/PharmaLedger-IMI/helm-charts) except
 
-- smartcontract
-- standalone-quorum
+- goquorum-genesis-dev
+- goquorum-node-dev
 
-They are about to follow!
+which will not be migrated as they are not needed (anymore)!
 
 ## Requirements
 
